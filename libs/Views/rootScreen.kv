@@ -1,0 +1,130 @@
+<HoverMDCard>:
+    hr: 8
+    hover_bg: 1, 1, 1, 0
+    my_bg: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgba: self.my_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, 0.08
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDBoxLayout>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, 0.08
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDIconButton>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDRaisedButton>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDFlatButton>:
+    hover_bg: 1, 1, 1, 0
+    new_bg_color: 1, 1, 1, 0.02
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.before:
+        Color:
+            rgba: self.new_bg_color
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<TooltipMDFlatButtonNoHover@MDFlatButton+MDTooltip>:
+    ttext: ''
+    tooltip_text: self.ttext if not self.disabled else ''
+
+
+<TooltipMDIconButtonNoHover@MDIconButton+MDTooltip>:
+    ttext: ''
+    tooltip_text: self.ttext if not self.disabled else ''
+
+
+<TooltipMDFlatButton@HoverMDFlatButton+MDTooltip>:
+    ttext: ''
+    tooltip_display_delay: app.tooltip_show_delay
+    tooltip_text: self.ttext if not self.disabled else ''
+
+
+<TooltipMDIconButton@HoverMDIconButton+MDTooltip>:
+    ttext: ''
+    tooltip_display_delay: app.tooltip_show_delay
+    tooltip_text: self.ttext if not self.disabled else ''
+
+
+<RootScreen>:
+    MDBoxLayout:
+        id: rootBox
+        orientation: 'vertical'
+        md_bg_color: app.theme_cls.bg_dark
+

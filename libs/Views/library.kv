@@ -1,0 +1,72 @@
+#:import Factory kivy.factory.Factory
+#:import OpacityScrollEffectSmooth libs.effects.opacityscrollsmooth
+#:import Window kivy.core.window.Window
+
+
+<HoverMDCardButton@HoverMDCard+ButtonBehavior>:
+
+
+<LibraryItem>:
+    orientation: 'vertical'
+    size_hint: None, None
+    width: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)
+    height: self.width * 1.42655 + dp(30)
+    HoverMDCardButton:
+        id: card
+        radius: [dp(8)]
+        orientation: 'vertical'
+        size_hint: None, None
+        width: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)
+        height: self.width * 1.42655
+#        on_release: print('FUCK')
+        MDAnchorLayout:
+            anchor_y: 'bottom'
+            FitImage:
+                id: image
+                radius: [8, 8, 8, 8]
+                source: root.cover
+            MDLabel:
+                canvas.before:
+                    Color:
+                        rgba: [0, 0, 0, 0.8]
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(8)]
+                md_bg_color: [0, 0, 0, 0.0]
+                padding: [dp(10), dp(10), dp(10), dp(10)]
+                font_style: 'Body2'
+                text: root.title
+                adaptive_height: True
+    MDRelativeLayout:
+        MDLabel:
+            padding: [dp(10), dp(5), dp(5), dp(10)]
+            font_style: 'Caption'
+            text: root.type + ', ' + root.year + ', ' + root.genre
+
+<RecycleListItems>:
+    id: recycle_root
+    viewclass: 'LibraryItem'
+    pos_hint_x: {"center": .5}
+    effect_cls: Factory.DampedScrollEffect
+    scroll_wheel_distance: dp(30)
+    smooth_scroll_end: 20
+    MDRecycleGridLayout:
+        padding: [0, dp(3), 0, 0]
+        size_hint_y: None
+        height: self.minimum_height
+        spacing: dp(10)
+        cols: app.COLS_LIBRARY
+        default_size: None, (((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)) * 1.42655 + dp(30)
+
+<LibraryScreen>:
+    MDRelativeLayout:
+        MDBoxLayout:
+            id: library_screen_box
+            padding: [dp(10), 0, 0, dp(10)]
+        MDLabel:
+            id: library_empty_indicator
+            text: 'Библиотека пуста :('
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.accent_color
+            halign: 'center'

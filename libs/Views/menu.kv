@@ -1,0 +1,72 @@
+<MenuView>:
+    md_bg_color: app.theme_cls.bg_dark
+    size_hint: 1, None
+    height: dp(58)
+    padding: dp(10), 0, dp(10), 0
+    spacing: dp(10)
+    HoverMDFlatButton:
+        id: btn_library
+        text: 'Библиотека'
+        pos_hint: {"center_x": .5, "center_y": .5}
+        new_bg_color: 0, 0, 0, 0
+        ripple_alpha: 0.
+        font_style: 'H6'
+        theme_text_color: "Custom"
+        text_color: app.theme_cls.primary_color
+        on_release: root.controller.set_screen('library')
+    HoverMDFlatButton:
+        id: btn_downloads
+        text: 'Загрузки'
+        pos_hint: {"center_x": .5, "center_y": .5}
+        new_bg_color: 0, 0, 0, 0
+        ripple_alpha: 0.
+        font_style: 'H6'
+        theme_text_color: "Custom"
+        text_color: app.theme_cls.accent_color
+        on_release: root.controller.set_screen('downloads')
+    MDBoxLayout:
+        id: right_box
+        MDAnchorLayout:
+            anchor_x: 'right'
+            MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_size: True
+                spacing: dp(10)
+                HoverMDCard:
+                    border_radius: 20
+                    radius: [dp(16)]
+                    hr: dp(16)
+                    my_bg: app.theme_cls.bg_light
+                    md_bg_color: 0, 0, 0, 0
+                    size_hint: None, None
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    height: dp(38)
+                    width: right_box.width - dp(50) if right_box.width <= dp(400) else dp(350)
+                    padding: dp(15), 0, 0, 0
+                    TextInput:
+                        id: search_input
+                        multiline: False
+                        hint_text: 'URL или поисковой запрос'
+                        background_normal: ''
+                        background_down: ''
+                        background_color: (0,0,0,0)
+                        halign: 'left'
+                        padding: 0, self.height / 2.0 - (self.line_height / 2.0) * len(self._lines), 0, 0
+                        text_color: app.theme_cls.accent_color
+                        cursor_color: app.theme_cls.primary_color
+                        selection_color: [0.5, 0.5, 0.5, 0.2]
+                        foreground_color: app.theme_cls.accent_color
+                        on_text_validate: root.controller.search(search_input.text)
+                    TooltipMDIconButtonNoHover:
+                        id: btn_search
+                        ripple_alpha: 0.
+                        tooltip_display_delay: 0.1
+                        ttext: 'Поиск'
+                        icon: 'magnify'
+                        size_hint: None, None
+                        size: [dp(38), dp(38)]
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release: root.controller.search(search_input.text)
+                HoverMDIconButton:
+                    icon: 'cog-outline'
+                    pos_hint: {"center_x": .5, "center_y": .5}
