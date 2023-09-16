@@ -36,8 +36,8 @@ class RezkerApp(MDApp):
 
         self.on_resize(Window, Window.size)
 
-    def on_stop(self):
-        pass
+    # def on_stop(self):
+    #     pass
 
     def build(self):
         Window.bind(size=self.on_resize)
