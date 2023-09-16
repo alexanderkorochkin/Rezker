@@ -1,7 +1,6 @@
 from kivy.core.window import Window
 from kivy.factory import Factory
 from kivy.loader import Loader
-from kivy.metrics import dp
 from kivy.properties import NumericProperty
 from kivymd.app import MDApp
 
