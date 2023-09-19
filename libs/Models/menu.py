@@ -1,3 +1,6 @@
+from kivy.clock import mainthread
+
+
 class MenuModel:
 
     def __init__(self):
@@ -19,6 +22,7 @@ class MenuModel:
     def remove_observer(self, observer):
         self._observers.remove(observer)
 
+    @mainthread
     def notify_observers(self):
         for x in self._observers:
             x.model_is_changed()

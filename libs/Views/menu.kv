@@ -41,7 +41,7 @@
                     size_hint: None, None
                     pos_hint: {"center_x": .5, "center_y": .5}
                     height: dp(38)
-                    width: right_box.width - dp(50) if right_box.width <= dp(400) else dp(350)
+                    width: right_box.width - dp(60) if right_box.width <= dp(700) else dp(640)
                     padding: dp(15), 0, 0, 0
                     TextInput:
                         id: search_input
@@ -57,6 +57,19 @@
                         selection_color: [0.5, 0.5, 0.5, 0.2]
                         foreground_color: app.theme_cls.accent_color
                         on_text_validate: root.controller.search(search_input.text)
+                    TooltipMDIconButtonNoHover:
+                        id: btn_search
+                        ripple_alpha: 0.
+                        tooltip_display_delay: 0.1
+                        ttext: 'Удалить'
+                        icon: 'close'
+                        size_hint: None, None
+                        disabled: False if search_input.text else True
+                        size: [dp(38), dp(38)] if search_input.text else [0, 0]
+                        opacity: 1 if search_input.text else 0
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release:
+                            search_input.text = ''
                     TooltipMDIconButtonNoHover:
                         id: btn_search
                         ripple_alpha: 0.

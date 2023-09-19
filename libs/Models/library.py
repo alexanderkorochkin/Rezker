@@ -1,3 +1,6 @@
+from kivy.clock import mainthread
+
+
 class LibraryModel:
 
     def __init__(self):
@@ -23,6 +26,7 @@ class LibraryModel:
     def remove_observer(self, observer):
         self._observers.remove(observer)
 
+    @mainthread
     def notify_observers(self):
         for x in self._observers:
             x.model_is_changed()

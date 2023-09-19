@@ -35,8 +35,12 @@ class HdRezkaApi:
 		return self.soup.find(id="post_id").attrs['value']
 
 	@cached_property
-	def name(self):
+	def title(self):
 		return self.soup.find(class_="b-post__title").get_text().strip()
+
+	@cached_property
+	def title_en(self):
+		return self.soup.find(class_="b-post__origtitle").get_text().strip()
 
 	def findInfoTable(self, request):
 		table = self.soup.find("table", {"class": "b-post__info"})

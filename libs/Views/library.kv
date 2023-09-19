@@ -24,7 +24,7 @@
             FitImage:
                 id: image
                 radius: [8, 8, 8, 8]
-                source: root.cover
+                source: root.thumbnail
             MDLabel:
                 canvas.before:
                     Color:
@@ -36,13 +36,13 @@
                 md_bg_color: [0, 0, 0, 0.0]
                 padding: [dp(10), dp(10), dp(10), dp(10)]
                 font_style: 'Body2'
-                text: root.title
+                text: root.name
                 adaptive_height: True
     MDRelativeLayout:
         MDLabel:
             padding: [dp(10), dp(5), dp(5), dp(10)]
             font_style: 'Caption'
-            text: root.type + ', ' + root.year + ', ' + root.genre
+            text: root.type + ', ' + root.date + ', ' + root.genre
 
 <RecycleListItems>:
     id: recycle_root

@@ -20,6 +20,9 @@ class MenuView(MDBoxLayout):
         elif self.model.current_screen == 'downloads':
             self.ids.btn_library.text_color = self.app.theme_cls.accent_color
             self.ids.btn_downloads.text_color = self.app.theme_cls.primary_color
+        else:
+            self.ids.btn_library.text_color = self.app.theme_cls.accent_color
+            self.ids.btn_downloads.text_color = self.app.theme_cls.accent_color
 
 
 Builder.load_file(os.path.join(os.path.dirname(__file__), "menu.kv"))

@@ -13,20 +13,20 @@ from kivymd_extensions.akivymd.uix.loaders import AKImageLoader
 
 
 class LibraryItem(MDBoxLayout):
-    title = StringProperty('Title')
-    year = StringProperty('year')
+    name = StringProperty('Title')
+    date = StringProperty('year')
     genre = StringProperty('genre')
-    cover = StringProperty('')
+    thumbnail = StringProperty('')
     type = StringProperty('type')
     url = StringProperty('URL')
 
 
-class RecycleListItems(MDRecycleView):
+class RecycleListLibraryItems(MDRecycleView):
     controller = ObjectProperty()
     model = ObjectProperty()
 
     def __init__(self, model, controller, **kwargs):
-        super(RecycleListItems, self).__init__(**kwargs)
+        super(RecycleListLibraryItems, self).__init__(**kwargs)
         self.model = model
         self.controller = controller
         self.data = []
@@ -39,7 +39,7 @@ class LibraryScreen(MDScreen, Observer):
     def __init__(self, **kw):
         super().__init__(**kw)
         self.model.add_observer(self)
-        self.recycleList = RecycleListItems(self.model, self.controller)
+        self.recycleList = RecycleListLibraryItems(self.model, self.controller)
         self.ids.library_screen_box.add_widget(self.recycleList)
 
     def model_is_changed(self):

@@ -3,24 +3,19 @@ import os
 from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
-from kivy.uix.screenmanager import NoTransition
+from kivymd.material_resources import dp
 from kivymd.uix.behaviors import HoverBehavior, ScaleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton, MDFlatButton, MDRaisedButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
-from kivymd.uix.transition import MDSwapTransition, MDFadeSlideTransition, MDSlideTransition
+from kivymd.uix.spinner import MDSpinner
 
-from libs.Common.observer import Observer
 from libs.Controllers.downloads import DownloadsController
 from libs.Controllers.item import ItemController
 from libs.Controllers.library import LibraryController
 from libs.Controllers.menu import MenuController
-from libs.Models.downloads import DownloadsModel
-from libs.Models.item import ItemModel
-from libs.Models.library import LibraryModel
-from libs.Models.menu import MenuModel
 
 
 class HoverMDIconButton(MDIconButton, HoverBehavior):
@@ -64,7 +59,7 @@ class HoverMDCard(MDCard, HoverBehavior, ScaleBehavior):
         self.normal_scale()
 
 
-class RootScreen(MDScreen, Observer):
+class RootScreen(MDScreen):
 
     controller = ObjectProperty()
     model = ObjectProperty()
@@ -88,23 +83,19 @@ class RootScreen(MDScreen, Observer):
 
         self.app = app
 
-        self.screenManager = MDScreenManager(transition=MDSlideTransition())
-        self.screenManager.transition.duration = 0.1
+        self.screenManager = MDScreenManager()
 
-        self.libraryModel = LibraryModel()
-        self.libraryController = LibraryController(app=self.app, model=self.libraryModel, name='library')
+        self.libraryController = LibraryController(app=self.app, name='library')
         self.libraryScreen = self.libraryController.get_screen()
-        self.library = {'model': self.libraryModel, 'controller': self.libraryController, 'screen': self.libraryScreen}
+        self.library = {'model': self.libraryController.model, 'controller': self.libraryController, 'screen': self.libraryScreen}
 
-        self.downloadsModel = DownloadsModel()
-        self.downloadsController = DownloadsController(app=self.app, model=self.downloadsModel, name='downloads')
+        self.downloadsController = DownloadsController(app=self.app, name='downloads')
         self.downloadsScreen = self.downloadsController.get_screen()
-        self.downloads = {'model': self.downloadsModel, 'controller': self.downloadsController, 'screen': self.downloadsScreen}
+        self.downloads = {'model': self.downloadsController.model, 'controller': self.downloadsController, 'screen': self.downloadsScreen}
 
-        self.itemModel = ItemModel()
-        self.itemController = ItemController(app=self.app, model=self.itemModel, name='item')
+        self.itemController = ItemController(app=self.app, name='item')
         self.itemScreen = self.itemController.get_screen()
-        self.item = {'model': self.itemModel, 'controller': self.itemController, 'screen': self.itemScreen}
+        self.item = {'model': self.itemController.model, 'controller': self.itemController, 'screen': self.itemScreen}
 
         self.screens = {'library': self.library, 'downloads': self.downloads, 'item': self.item}
 
@@ -112,8 +103,7 @@ class RootScreen(MDScreen, Observer):
         self.screenManager.add_widget(self.downloadsScreen)
         self.screenManager.add_widget(self.itemScreen)
 
-        self.menuModel = MenuModel()
-        self.menuController = MenuController(app=self.app, model=self.menuModel, screen_manager=self.screenManager)
+        self.menuController = MenuController(app=self.app)
         self.menuView = self.menuController.get_screen()
 
         self.ids.rootBox.add_widget(self.menuView)
