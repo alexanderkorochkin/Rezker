@@ -32,16 +32,17 @@ class ItemController:
         if sub_type == 'animation':
             sub_type = 'Аниме'
             if str(item.type) == 'movie':
-                sub_type = sub_type + ' (фильмы)'
+                sub_type = 'Мультфильмы (аниме)'
             else:
-                sub_type = sub_type + ' (сериалы)'
+                sub_type = 'Мультсериалы (аниме)'
         elif sub_type == 'films':
             sub_type = 'Фильмы'
         elif sub_type == 'series':
             sub_type = 'Сериалы'
         elif sub_type == 'cartoons':
-            sub_type = 'Мультфильмы'
-            if str(item.type) == 'series':
+            if str(item.type) == 'movie':
+                sub_type = 'Мультфильмы'
+            else:
                 sub_type = 'Мультсериалы'
 
         self.model.itemBaseInformation = {

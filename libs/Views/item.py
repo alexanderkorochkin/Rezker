@@ -7,22 +7,6 @@ from kivymd.uix.screen import MDScreen
 from libs.Common.observer import Observer
 
 
-class LoaderLabel(MDLabel):
-    default_size_x = NumericProperty(100)
-    default_size_y = NumericProperty(20)
-    loading_color = ListProperty([0.15, 0.15, 0.15, 0.5])
-
-    def __init__(self, **kwargs):
-        super(LoaderLabel, self).__init__(**kwargs)
-        self.bind(text=self.on_text_change)
-
-    def on_text_change(self, instance, value):
-        if value:
-            self.loading_color = [1, 1, 1, 0.0]
-        else:
-            self.loading_color = [0.15, 0.15, 0.15, 0.5]
-
-
 class ItemScreen(MDScreen, Observer):
     controller = ObjectProperty()
     model = ObjectProperty()
@@ -66,4 +50,4 @@ class ItemScreen(MDScreen, Observer):
             self.description = self.model.itemBaseInformation['description']
 
 
-Builder.load_file(os.path.join(os.path.dirname(__file__), "item.kv"))
+Builder.load_file(os.path.join(os.path.dirname(__file__), "kv/item.kv"))

@@ -1,16 +1,9 @@
 import os
 
-from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
-from kivymd.material_resources import dp
-from kivymd.uix.behaviors import HoverBehavior, ScaleBehavior
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDIconButton, MDFlatButton, MDRaisedButton
-from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
-from kivymd.uix.spinner import MDSpinner
 
 from libs.Controllers.downloads import DownloadsController
 from libs.Controllers.item import ItemController
@@ -18,45 +11,12 @@ from libs.Controllers.library import LibraryController
 from libs.Controllers.menu import MenuController
 
 
-class HoverMDIconButton(MDIconButton, HoverBehavior):
-    pass
+class MScreenManager(MDScreenManager):
+    app = ObjectProperty()
+    root_screen = ObjectProperty()
 
-
-class HoverMDFlatButton(MDFlatButton, HoverBehavior):
-    pass
-
-
-class HoverMDRaisedButton(MDRaisedButton, HoverBehavior):
-    pass
-
-
-class HoverMDBoxLayout(MDBoxLayout, HoverBehavior):
-    pass
-
-
-class HoverMDCard(MDCard, HoverBehavior, ScaleBehavior):
-
-    anim = ObjectProperty()
-
-    def up_scale(self) -> None:
-        self.anim = Animation(
-            scale_value_x=1.01,
-            scale_value_y=1.01,
-            d=0.1,
-        ).start(self)
-
-    def normal_scale(self) -> None:
-        self.anim = Animation(
-            scale_value_x=1,
-            scale_value_y=1,
-            d=0.05,
-        ).start(self)
-
-    def on_enter(self):
-        self.up_scale()
-
-    def on_leave(self):
-        self.normal_scale()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class RootScreen(MDScreen):
@@ -83,7 +43,7 @@ class RootScreen(MDScreen):
 
         self.app = app
 
-        self.screenManager = MDScreenManager()
+        self.screenManager = MScreenManager(app=self.app, root_screen=self)
 
         self.libraryController = LibraryController(app=self.app, name='library')
         self.libraryScreen = self.libraryController.get_screen()
@@ -102,6 +62,7 @@ class RootScreen(MDScreen):
         self.screenManager.add_widget(self.libraryScreen)
         self.screenManager.add_widget(self.downloadsScreen)
         self.screenManager.add_widget(self.itemScreen)
+        self.screenManager.add_widget(self.app.settingsScreen)
 
         self.menuController = MenuController(app=self.app)
         self.menuView = self.menuController.get_screen()

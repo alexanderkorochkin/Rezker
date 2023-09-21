@@ -13,7 +13,10 @@ from kivymd_extensions.akivymd.uix.loaders import AKImageLoader
 
 
 class LibraryItem(MDBoxLayout):
-    name = StringProperty('Title')
+    controller = ObjectProperty()
+    model = ObjectProperty()
+
+    title = StringProperty('Title')
     date = StringProperty('year')
     genre = StringProperty('genre')
     thumbnail = StringProperty('')
@@ -21,12 +24,12 @@ class LibraryItem(MDBoxLayout):
     url = StringProperty('URL')
 
 
-class RecycleListLibraryItems(MDRecycleView):
+class RVLibraryItems(MDRecycleView):
     controller = ObjectProperty()
     model = ObjectProperty()
 
     def __init__(self, model, controller, **kwargs):
-        super(RecycleListLibraryItems, self).__init__(**kwargs)
+        super(RVLibraryItems, self).__init__(**kwargs)
         self.model = model
         self.controller = controller
         self.data = []
@@ -39,7 +42,7 @@ class LibraryScreen(MDScreen, Observer):
     def __init__(self, **kw):
         super().__init__(**kw)
         self.model.add_observer(self)
-        self.recycleList = RecycleListLibraryItems(self.model, self.controller)
+        self.recycleList = RVLibraryItems(self.model, self.controller)
         self.ids.library_screen_box.add_widget(self.recycleList)
 
     def model_is_changed(self):
@@ -47,4 +50,4 @@ class LibraryScreen(MDScreen, Observer):
         self.ids.library_empty_indicator.text = ''
 
 
-Builder.load_file(os.path.join(os.path.dirname(__file__), "library.kv"))
+Builder.load_file(os.path.join(os.path.dirname(__file__), "kv/library.kv"))

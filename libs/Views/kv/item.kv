@@ -1,0 +1,180 @@
+#:import Window kivy.core.window.Window
+
+<ItemScreen>:
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: Factory.DampedScrollEffect
+        scroll_wheel_distance: dp(30)
+        MDAnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'top'
+            size_hint_y: None
+            height: all.height
+            MDBoxLayout:
+                id: all
+                orientation: 'vertical'
+                adaptive_height: True
+                size_hint_x: None
+                width: Window.size[0] if Window.size[0] < dp(1000) else dp(1000)
+                padding: [dp(20), dp(10), dp(20), dp(20)]
+                spacing: dp(10)
+                MDBoxLayout:
+                    id: info_table
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: max(card.height, information.height)
+                    spacing: dp(20)
+                    MDAnchorLayout:
+                        id: left_box
+                        anchor_y: 'top'
+                        size_hint_x: None
+                        width: card.width
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            adaptive_height: True
+                            spacing: dp(10)
+                            HoverMDCardButton:
+                                id: card
+                                radius: [dp(8)]
+                                orientation: 'vertical'
+                                size_hint: None, None
+                                width: dp(200)
+                                height: self.width * 1.5
+                                FitImage:
+                                    id: thumbnail
+                                    radius: [8, 8, 8, 8]
+                                    source: root.thumbnail
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                spacing: dp(10)
+                                adaptive_height: True
+                                HoverMDIconButton:
+                                    id: btn_download
+                                    ripple_alpha: 0.
+                                    icon: 'download'
+                                    size_hint: None, None
+                                    size: [dp(38), dp(38)]
+                                    pos_hint: {"center_x": .5, "center_y": .5}
+                                    theme_icon_color: "Custom"
+                                    icon_color: 'white'
+                    MDAnchorLayout:
+                        id: right_box
+                        anchor_y: 'top'
+                        MDBoxLayout:
+                            id: information
+                            orientation: 'vertical'
+                            adaptive_height: True
+                            spacing: dp(0) if root.title else dp(5)
+                            LoaderLabel:
+                                text: root.title + root.year
+                                font_style: 'H5'
+                                size_hint: 1, None
+                                default_size_x: dp(350)
+                                default_size_y: dp(30)
+                                height: self.texture_size[1] or dp(30)
+                                padding: [0, 0, 0, 0]
+                            LoaderLabel:
+                                text: root.title_en
+                                theme_text_color: "Custom"
+                                text_color: app.theme_cls.accent_color
+                                font_style: 'Caption'
+                                size_hint: 1, None
+                                default_size_x: dp(100)
+                                default_size_y: dp(10)
+                                height: self.texture_size[1] or dp(10)
+                                padding: [0, dp(5), 0, 0]
+                            LoaderLabel:
+                                markup: True
+                                text: f'Слоган: [b]{root.tagline}[/b]' if root.tagline else ''
+                                font_style: 'Body1'
+                                size_hint: 1, None
+                                default_size_x: dp(500)
+                                default_size_y: dp(20)
+                                height: self.texture_size[1] or dp(20) if root.tagline != 'None' else 0
+                                opacity: 1 if root.tagline != 'None' else 0
+                                padding: [0, dp(5), 0, 0] if root.tagline != 'None' else [0, 0, 0, 0]
+                            LoaderLabel:
+                                markup: True
+                                text: f'Категория: [b]{root.sub_type}[/b]' if root.sub_type else ''
+                                font_style: 'Body1'
+                                size_hint: 1, None
+                                default_size_x: dp(100)
+                                default_size_y: dp(20)
+                                height: self.texture_size[1] or dp(20)
+                                opacity: 1 if root.sub_type != 'None' else 0
+                                padding: [0, dp(5), 0, 0] if root.sub_type != 'None' else [0, 0, 0, 0]
+                            LoaderLabel:
+                                markup: True
+                                text: f'Жанр: [b]{root.genre}[/b]' if root.genre else ''
+                                font_style: 'Body1'
+                                size_hint: 1, None
+                                default_size_x: dp(300)
+                                default_size_y: dp(20)
+                                height: self.texture_size[1] or dp(20)
+                                opacity: 1 if root.genre != 'None' else 0
+                                padding: [0, dp(5), 0, 0] if root.genre != 'None' else [0, 0, 0, 0]
+                            LoaderLabel:
+                                markup: True
+                                text: f'Рейтинг: [b]{root.rate}[/b]' if root.rate else ''
+                                font_style: 'Body1'
+                                size_hint: 1, None
+                                default_size_x: dp(100)
+                                default_size_y: dp(20)
+                                height: self.texture_size[1] or dp(20)
+                                opacity: 1 if root.rate != 'None' else 0
+                                padding: [0, dp(5), 0, 0] if root.rate != 'None' else [0, 0, 0, 0]
+                            LoaderLabel:
+                                markup: True
+                                text: f'Дата выхода: [b]{root.date}[/b]' if root.date else ''
+                                font_style: 'Body1'
+                                size_hint: 1, None
+                                default_size_x: dp(200)
+                                default_size_y: dp(20)
+                                height: self.texture_size[1] or dp(20)
+                                opacity: 1 if root.date != 'None' else 0
+                                padding: [0, dp(5), 0, 0] if root.date != 'None' else [0, 0, 0, 0]
+                            LoaderLabel:
+                                markup: True
+                                text: f'Возраст: [b]{root.age}[/b]' if root.age else ''
+                                font_style: 'Body1'
+                                size_hint: 1, None
+                                default_size_x: dp(200)
+                                default_size_y: dp(20)
+                                height: self.texture_size[1] or dp(20) if root.age != 'None' else 0
+                                opacity: 1 if root.age != 'None' else 0
+                                padding: [0, dp(5), 0, 0] if root.age != 'None' else [0, 0, 0, 0]
+                            LoaderLabel:
+                                markup: True
+                                text: f'Длительность: [b]{root.duration}[/b]' if root.duration else ''
+                                font_style: 'Body1'
+                                size_hint: 1, None
+                                default_size_x: dp(200)
+                                default_size_y: dp(20)
+                                height: self.texture_size[1] or dp(20)
+                                opacity: 1 if root.duration != 'None' else 0
+                                padding: [0, dp(5), 0, 0] if root.duration != 'None' else [0, 0, 0, 0]
+                            LoaderLabel:
+                                markup: True
+                                text: 'Описание:' if root.description else ''
+                                font_style: 'H5'
+                                size_hint: 1, None
+                                default_size_x: dp(150)
+                                default_size_y: dp(30)
+                                padding: [0, dp(20), 0, 0]
+                                height: self.texture_size[1] or dp(30)
+                            LoaderLabel:
+                                markup: True
+                                multiline: True
+                                text: root.description
+                                font_style: 'Body1'
+                                size_hint: 1, None
+                                default_size_x: Window.size[0] - dp(20)
+                                default_size_y: dp(100)
+                                height: self.texture_size[1] or dp(100)
+                            MDBoxLayout:
+                                id: episodes
+                                orientation: 'vertical'
+                                md_bg_color: 'green'
+

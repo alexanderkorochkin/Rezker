@@ -19,7 +19,12 @@ class MenuController:
         return self.view
 
     def search(self, request):
-        # self.app.rootScreen.screens['library']['controller'].add_item({'title': 'FUCK YOURSELF', 'cover': 'https://static.hdrezka.ac/i/2013/11/30/u5282eb49ebc3sd19f40y.jpg'})
+        if request == 'test':
+            self.app.rootScreen.screens['library']['controller'].add_item({'title': 'FUCK YOURSELF',
+                                                                           'thumbnail': 'https://static.hdrezka.ac/i/2013/11/30/u5282eb49ebc3sd19f40y.jpg',
+                                                                           'url': 'https://hdrezkawer.org/animation/comedy/59336-krasavica-unesi-menya-na-lunu-dni-starshey-shkoly-2023.html'
+                                                                           })
+        self.view.set_cursor_to_start()
         if validators.url(request):
             self.set_screen('item')
             if self.last_request != request:
@@ -28,7 +33,14 @@ class MenuController:
             pass
         self.last_request = request
 
-    def set_screen(self, screen_name):
+    def screen_back(self):
+        self.set_screen(self.model.last_screen, no_last=True)
+
+    def set_screen(self, screen_name, no_last=False):
+        if no_last:
+            self.model.last_screen = ''
+        else:
+            self.model.last_screen = self.app.rootScreen.screenManager.current
         self.app.rootScreen.screenManager.transition = NoTransition()
         self.app.rootScreen.screenManager.current = screen_name
         self.model.current_screen = screen_name

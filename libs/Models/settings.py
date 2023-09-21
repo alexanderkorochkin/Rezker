@@ -1,25 +1,18 @@
 from kivy.clock import mainthread
 
 
-class LibraryModel:
+class SettingsModel:
 
     def __init__(self):
-        self._data = []
+        self._settings_data = []
         self._observers = []
-        self.controller = None
 
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, value: list):
-        self._data = value
+    def set(self, key, value):
+        self._settings_data[key] = value
         self.notify_observers()
 
-    def add_item(self, item: dict):
-        self._data.append(item.copy())
-        self.notify_observers()
+    def get(self, key):
+        return self._settings_data[key]
 
     def add_observer(self, observer):
         self._observers.append(observer)

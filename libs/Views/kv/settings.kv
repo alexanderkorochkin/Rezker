@@ -1,0 +1,22 @@
+#:import Window kivy.core.window.Window
+
+<SettingsScreen>:
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: Factory.DampedScrollEffect
+        scroll_wheel_distance: dp(30)
+        MDAnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'top'
+            size_hint_y: None
+            height: all.height
+            MDBoxLayout:
+                id: all
+                orientation: 'vertical'
+                adaptive_height: True
+                size_hint_x: None
+                width: Window.size[0] if Window.size[0] < dp(1000) else dp(1000)
+                padding: [dp(20), dp(10), dp(20), dp(20)]
+                spacing: dp(10)

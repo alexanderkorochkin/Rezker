@@ -1,9 +1,18 @@
+#:import TextInputMod libs.Views.common.TextInputMod
+
 <MenuView>:
     md_bg_color: app.theme_cls.bg_dark
     size_hint: 1, None
     height: dp(58)
-    padding: dp(10), 0, dp(10), 0
-    spacing: dp(10)
+    padding: dp(5), 0, dp(10), 0
+#    spacing: dp(5)
+    HoverMDIconButton:
+        id: btn_screen_back
+        disabled: True
+        icon: 'arrow-left'
+        pos_hint: {"center_x": .5, "center_y": .5}
+        ripple_alpha: 0.
+        on_release: root.controller.screen_back()
     HoverMDFlatButton:
         id: btn_library
         text: 'Библиотека'
@@ -33,6 +42,7 @@
                 adaptive_size: True
                 spacing: dp(10)
                 HoverMDCard:
+                    id: search_box
                     border_radius: 20
                     radius: [dp(16)]
                     hr: dp(16)
@@ -43,7 +53,7 @@
                     height: dp(38)
                     width: right_box.width - dp(60) if right_box.width <= dp(700) else dp(640)
                     padding: dp(15), 0, 0, 0
-                    TextInput:
+                    TextInputMod:
                         id: search_input
                         multiline: False
                         hint_text: 'URL или поисковой запрос'
@@ -51,19 +61,19 @@
                         background_down: ''
                         background_color: (0,0,0,0)
                         halign: 'left'
-                        padding: 0, self.height / 2.0 - (self.line_height / 2.0) * len(self._lines), 0, 0
+                        padding: 0, self.height / 2.0 - (self.line_height / 2.0) * len(self._lines), dp(8), 0
                         text_color: app.theme_cls.accent_color
                         cursor_color: app.theme_cls.primary_color
-                        selection_color: [0.5, 0.5, 0.5, 0.2]
+                        selection_color: [app.theme_cls.primary_color[0], app.theme_cls.primary_color[1], app.theme_cls.primary_color[2], 0.2]
                         foreground_color: app.theme_cls.accent_color
                         on_text_validate: root.controller.search(search_input.text)
                     TooltipMDIconButtonNoHover:
-                        id: btn_search
+                        id: btn_clear
                         ripple_alpha: 0.
                         tooltip_display_delay: 0.1
-                        ttext: 'Удалить'
+                        ttext: ''
                         icon: 'close'
-                        size_hint: None, None
+                        size_hint: [None, None] if search_input.text else [0.00001, None]
                         disabled: False if search_input.text else True
                         size: [dp(38), dp(38)] if search_input.text else [0, 0]
                         opacity: 1 if search_input.text else 0
@@ -74,12 +84,18 @@
                         id: btn_search
                         ripple_alpha: 0.
                         tooltip_display_delay: 0.1
-                        ttext: 'Поиск'
+                        ttext: ''
                         icon: 'magnify'
                         size_hint: None, None
                         size: [dp(38), dp(38)]
                         pos_hint: {"center_x": .5, "center_y": .5}
+                        theme_icon_color: "Custom"
+                        icon_color: 'white'
                         on_release: root.controller.search(search_input.text)
                 HoverMDIconButton:
+                    id: btn_settings
+                    theme_icon_color: "Custom"
+                    icon_color: 'white'
                     icon: 'cog-outline'
                     pos_hint: {"center_x": .5, "center_y": .5}
+                    on_release: root.controller.set_screen('settings')

@@ -1,22 +1,30 @@
 from kivy.core.window import Window
 from kivy.factory import Factory
 from kivy.loader import Loader
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, ObjectProperty
 from kivymd.app import MDApp
 
-from libs.Views.rootScreen import RootScreen
+from libs.Controllers.settings import SettingsController
+from libs.rootScreen import RootScreen
 
 from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 
 class RezkerApp(MDApp):
     tooltip_show_delay = NumericProperty(0.3)
     COLS_LIBRARY = NumericProperty(5)
 
+    msettings = ObjectProperty()
+    settingsScreen = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Rezker"
         self.rootScreen = None
+
+        self.msettings = SettingsController(app=self, name='settings')
+        self.settingsScreen = self.msettings.get_screen()
 
     def on_resize(self, window, size):
         if size[0] < 400:

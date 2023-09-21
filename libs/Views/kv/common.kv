@@ -1,3 +1,42 @@
+<HoverMDCardButton@HoverMDCard+ButtonBehavior>:
+
+
+<LoaderLabel>:
+    canvas.before:
+        Color:
+            rgba: self.loading_color
+        RoundedRectangle:
+            pos: self.pos
+            size: self.default_size_x, self.default_size_y
+            radius: [8]
+
+
+<HoverOneLineListItem>:
+    hover_bg: 1, 1, 1, 0
+    new_bg_color: 1, 1, 1, 0.02
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.before:
+        Color:
+            rgba: self.new_bg_color
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
 <HoverMDCard>:
     hr: 8
     hover_bg: 1, 1, 1, 0
@@ -39,24 +78,6 @@
 
 
 <HoverMDIconButton>:
-    hover_bg: 1, 1, 1, 0
-    hr: 8
-    ripple_alpha: 0.2
-    radius: [self.hr, self.hr]
-    canvas.after:
-        Color:
-            rgba: self.hover_bg
-        RoundedRectangle:
-            size: self.size
-            pos: self.pos
-            radius: [self.hr, self.hr, self.hr, self.hr]
-    on_enter:
-        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
-    on_leave:
-        self.hover_bg = 1, 1, 1, 0
-
-
-<HoverMDRaisedButton>:
     hover_bg: 1, 1, 1, 0
     hr: 8
     ripple_alpha: 0.2
@@ -120,11 +141,3 @@
     ttext: ''
     tooltip_display_delay: app.tooltip_show_delay
     tooltip_text: self.ttext if not self.disabled else ''
-
-
-<RootScreen>:
-    MDBoxLayout:
-        id: rootBox
-        orientation: 'vertical'
-        md_bg_color: app.theme_cls.bg_dark
-
