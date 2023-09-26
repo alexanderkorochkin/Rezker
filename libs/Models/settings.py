@@ -4,7 +4,7 @@ from kivy.clock import mainthread
 class SettingsModel:
 
     def __init__(self):
-        self._settings_data = []
+        self._settings_data = {}
         self._observers = []
 
     def set(self, key, value):

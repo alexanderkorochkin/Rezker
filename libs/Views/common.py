@@ -10,6 +10,7 @@ from kivy.metrics import dp
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, NumericProperty, StringProperty
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.textinput import TextInput
+from kivy.utils import escape_markup
 from kivymd.app import MDApp
 from kivymd.uix.behaviors import HoverBehavior, ScaleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -20,6 +21,28 @@ from kivymd.uix.list import OneLineListItem
 from kivymd.uix.menu import MDDropdownMenu
 
 import kivymd.material_resources as m_res
+from kivymd.uix.progressbar import MDProgressBar
+
+
+def truncate_string(string, N, screen_brackets=False, no_space=True):
+    out = string
+    if len(string) > N:
+        substring = string[0: N]
+        if not no_space:
+            last_alpha = 0
+            for i in range(N - 1, 0, -1):
+                if string[i - 1].isalpha() and not string[i].isalpha():
+                    last_alpha = i
+                    break
+        else:
+            last_alpha = N
+        out = substring[0: last_alpha] + "…"
+
+    if screen_brackets:
+        out = out.replace('[', escape_markup('['))
+        out = out.replace(']', escape_markup(']'))
+
+    return out
 
 
 class LoaderLabel(MDLabel):
@@ -383,8 +406,23 @@ class HoverMDFlatButton(MDFlatButton, HoverBehavior):
     pass
 
 
+class NoHoverMDFlatButton(MDFlatButton, HoverBehavior):
+    pass
+
+
 class HoverMDBoxLayout(MDBoxLayout, HoverBehavior):
     pass
+
+
+class HoverMDCardNoScale(MDCard, HoverBehavior):
+    pass
+
+
+class RoundedProgressBar(MDProgressBar):
+    radius = ListProperty([dp(8), dp(8), dp(8), dp(8)])
+
+    def check_size(self, interval: Union[int, float]) -> None:
+        pass
 
 
 class HoverMDCard(MDCard, HoverBehavior, ScaleBehavior):

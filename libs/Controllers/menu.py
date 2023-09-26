@@ -22,7 +22,7 @@ class MenuController:
         if request == 'test':
             self.app.rootScreen.screens['library']['controller'].add_item({'title': 'FUCK YOURSELF',
                                                                            'thumbnail': 'https://static.hdrezka.ac/i/2013/11/30/u5282eb49ebc3sd19f40y.jpg',
-                                                                           'url': 'https://hdrezkawer.org/animation/comedy/59336-krasavica-unesi-menya-na-lunu-dni-starshey-shkoly-2023.html'
+                                                                           'url': 'https://hdrezkawer.org/films/fiction/2259-interstellar-2014.html'
                                                                            })
         self.view.set_cursor_to_start()
         if validators.url(request):

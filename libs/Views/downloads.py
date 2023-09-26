@@ -1,8 +1,53 @@
 import os
+
+from kivy.clock import mainthread
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.screen import MDScreen
 from libs.Common.observer import Observer
+
+
+class DownloadsItem(MDBoxLayout):
+    controller = ObjectProperty()
+    model = ObjectProperty()
+
+    url = StringProperty('')
+    hdrezka_id = StringProperty('')
+    thumbnail = StringProperty('')
+    title = StringProperty('')
+    title_en = StringProperty('')
+    date = StringProperty('')
+    year = StringProperty('')
+    type = StringProperty('')
+    sub_type = StringProperty('')
+    rate = StringProperty('')
+    genre = StringProperty('')
+    tagline = StringProperty('')
+    age = StringProperty('')
+    duration = StringProperty('')
+    description = StringProperty('')
+
+    link = StringProperty('')
+    fullpath = StringProperty('')
+    isPaused = BooleanProperty(False)
+    isStarted = BooleanProperty(False)
+    isFinished = BooleanProperty(False)
+    progress = NumericProperty(0)
+    speed = StringProperty('0')
+    remaining_time = StringProperty('0')
+
+
+class RVDownloadsItems(MDRecycleView):
+    controller = ObjectProperty()
+    model = ObjectProperty()
+
+    def __init__(self, model, controller, **kwargs):
+        super(RVDownloadsItems, self).__init__(**kwargs)
+        self.model = model
+        self.controller = controller
+        self.data = []
 
 
 class DownloadsScreen(MDScreen, Observer):
@@ -12,8 +57,12 @@ class DownloadsScreen(MDScreen, Observer):
     def __init__(self, **kw):
         super().__init__(**kw)
         self.model.add_observer(self)
+        self.recycleList = RVDownloadsItems(self.model, self.controller)
+        self.ids.downloads_screen_box.add_widget(self.recycleList)
 
     def model_is_changed(self):
+        self.recycleList.data = []
+        self.recycleList.data = self.model.data.copy()
         self.ids.downloads_empty_indicator.text = ''
 
 

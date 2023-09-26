@@ -1,5 +1,4 @@
 from kivy.clock import mainthread
-from kivy.loader import Loader
 
 
 class ItemModel:
@@ -7,7 +6,7 @@ class ItemModel:
     def __init__(self):
         self._observers = []
         self._itemBaseInformation = {}
-        self._itemLinks = {}
+        self._activeTranslation = ''
 
     @property
     def itemBaseInformation(self):
@@ -16,20 +15,21 @@ class ItemModel:
     @itemBaseInformation.setter
     def itemBaseInformation(self, data: dict):
         self._itemBaseInformation = data
-        self.notify_observers()
+        self._itemBaseInformation['year'] = str(self._itemBaseInformation['date'].split(' ')[-2])
+        self.notify_observers('itemBaseInformation')
 
     @property
-    def itemLinks(self):
-        return self._itemLinks
+    def activeTranslation(self):
+        return self._activeTranslation
 
-    @itemLinks.setter
-    def itemLinks(self, data: dict):
-        self._itemLinks = data
-        self.notify_observers()
+    @activeTranslation.setter
+    def activeTranslation(self, value):
+        self._activeTranslation = value
+        self.notify_observers('activeTranslation')
 
     def clearData(self):
         self._itemBaseInformation['url'] = ''
-        self._itemBaseInformation['id'] = ''
+        self._itemBaseInformation['hdrezka_id'] = ''
         self._itemBaseInformation['thumbnail'] = 'assets/img/loading-image.png'
         self._itemBaseInformation['title'] = ''
         self._itemBaseInformation['title_en'] = ''
@@ -42,6 +42,8 @@ class ItemModel:
         self._itemBaseInformation['age'] = ''
         self._itemBaseInformation['duration'] = ''
         self._itemBaseInformation['description'] = ''
+        self._itemBaseInformation['translations'] = {}.copy()
+        self._activeTranslation = ''
         self.notify_observers()
 
     def add_observer(self, observer):

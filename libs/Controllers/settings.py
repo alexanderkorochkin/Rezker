@@ -9,6 +9,9 @@ class SettingsController:
         self.model = SettingsModel()
         self.view = SettingsScreen(controller=self, model=self.model, name=name)
 
+        # Default Settings
+        self.model.set('downloads_destination', 'C:\HDRezker')
+
     def get_screen(self):
         return self.view
 

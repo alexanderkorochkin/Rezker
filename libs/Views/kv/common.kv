@@ -1,4 +1,10 @@
+<MDCardButton@MDCard+ButtonBehavior>:
+
+
 <HoverMDCardButton@HoverMDCard+ButtonBehavior>:
+
+
+<HoverMDCardNoScaleButton@HoverMDCardNoScale+ButtonBehavior>:
 
 
 <LoaderLabel>:
@@ -33,6 +39,30 @@
             radius: [self.hr, self.hr, self.hr, self.hr]
     on_enter:
         self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDCardNoScale>:
+    hr: 8
+    hover_bg: 1, 1, 1, 0
+    my_bg: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgba: self.my_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, 0.08
     on_leave:
         self.hover_bg = 1, 1, 1, 0
 
@@ -95,6 +125,21 @@
         self.hover_bg = 1, 1, 1, 0
 
 
+<NoHoverMDFlatButton>:
+    hover_bg: 1, 1, 1, 0
+    new_bg_color: 1, 1, 1, 0.02
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.before:
+        Color:
+            rgba: self.new_bg_color
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+
+
 <HoverMDFlatButton>:
     hover_bg: 1, 1, 1, 0
     new_bg_color: 1, 1, 1, 0.02
@@ -141,3 +186,39 @@
     ttext: ''
     tooltip_display_delay: app.tooltip_show_delay
     tooltip_text: self.ttext if not self.disabled else ''
+
+
+<RoundedProgressBar>
+    canvas:
+        Clear
+        Color:
+            rgba:
+                self.theme_cls.divider_color \
+                if not self.back_color else \
+                self.back_color
+        RoundedRectangle:
+            size:
+                (self.width, self.height) \
+                if self.orientation == "horizontal" else \
+                (self.width, self.height)
+            pos:
+                (self.x, self.center_y - self.height / 2) \
+                if self.orientation == "horizontal" else \
+                (self.center_x - self.width / 2, self.y)
+            radius: self.radius
+        Color:
+            rgba:
+                self.theme_cls.primary_color if not self.color else self.color
+        RoundedRectangle:
+            size:
+                (self.width * self.value_normalized, self.height if self.height else dp(4)) \
+                if self.orientation == "horizontal" else \
+                (self.width, self.height * self.value_normalized)
+            pos:
+                (self.width * (1 - self.value_normalized) + self.x \
+                if self.reversed else self.x + self._x, self.center_y - self.height / 2) \
+                if self.orientation == "horizontal" \
+                else (self.center_x - self.width / 2, self.height \
+                * (1 - self.value_normalized) + self.y if self.reversed \
+                else self.y)
+            radius: self.radius

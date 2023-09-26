@@ -1,4 +1,33 @@
+#:import Factory kivy.factory.Factory
+#:import OpacityScrollEffectSmooth libs.effects.opacityscrollsmooth
 #:import Window kivy.core.window.Window
+
+
+<TranslationItem>:
+    on_release: root.controller.chooseTranslation(root.text)
+
+
+<RVTranslationsList>:
+    id: recycle_root
+    viewclass: 'TranslationItem'
+    pos_hint_x: {"center": .5}
+    always_overscroll: False
+    effect_cls: Factory.DampedScrollEffect
+    scroll_wheel_distance: dp(30)
+    smooth_scroll_end: 20
+    bar_inactive_color: [0, 0, 0, 0]
+    bar_color: [0, 0, 0, 0]
+    size_hint_y: None
+    height: layout.height
+    MDRecycleGridLayout:
+        id: layout
+        size_hint: None, None
+        width: self.minimum_width
+        height: self.minimum_height
+        rows: 1
+        spacing: dp(5)
+        default_size: None, dp(38)
+
 
 <ItemScreen>:
     MDScrollView:
@@ -46,19 +75,6 @@
                                     id: thumbnail
                                     radius: [8, 8, 8, 8]
                                     source: root.thumbnail
-                            MDBoxLayout:
-                                orientation: 'vertical'
-                                spacing: dp(10)
-                                adaptive_height: True
-                                HoverMDIconButton:
-                                    id: btn_download
-                                    ripple_alpha: 0.
-                                    icon: 'download'
-                                    size_hint: None, None
-                                    size: [dp(38), dp(38)]
-                                    pos_hint: {"center_x": .5, "center_y": .5}
-                                    theme_icon_color: "Custom"
-                                    icon_color: 'white'
                     MDAnchorLayout:
                         id: right_box
                         anchor_y: 'top'
@@ -155,26 +171,44 @@
                                 height: self.texture_size[1] or dp(20)
                                 opacity: 1 if root.duration != 'None' else 0
                                 padding: [0, dp(5), 0, 0] if root.duration != 'None' else [0, 0, 0, 0]
-                            LoaderLabel:
-                                markup: True
-                                text: 'Описание:' if root.description else ''
-                                font_style: 'H5'
-                                size_hint: 1, None
-                                default_size_x: dp(150)
-                                default_size_y: dp(30)
-                                padding: [0, dp(20), 0, 0]
-                                height: self.texture_size[1] or dp(30)
-                            LoaderLabel:
-                                markup: True
-                                multiline: True
-                                text: root.description
-                                font_style: 'Body1'
-                                size_hint: 1, None
-                                default_size_x: Window.size[0] - dp(20)
-                                default_size_y: dp(100)
-                                height: self.texture_size[1] or dp(100)
-                            MDBoxLayout:
-                                id: episodes
-                                orientation: 'vertical'
-                                md_bg_color: 'green'
+                LoaderLabel:
+                    markup: True
+                    text: 'Описание:' if root.description else ''
+                    font_style: 'H5'
+                    size_hint: 1, None
+                    default_size_x: dp(150)
+                    default_size_y: dp(30)
+                    height: self.texture_size[1] or dp(30)
+                LoaderLabel:
+                    markup: True
+                    multiline: True
+                    text: root.description
+                    font_style: 'Body2'
+                    size_hint: 1, None
+                    default_size_x: Window.size[0] - dp(20)
+                    default_size_y: dp(100)
+                    height: self.texture_size[1] or dp(100)
+                LoaderLabel:
+                    markup: True
+                    text: 'Озвучки:' if root.title else ''
+                    font_style: 'H5'
+                    size_hint: 1, None
+                    default_size_x: dp(100)
+                    default_size_y: dp(20)
+                    height: self.texture_size[1] or dp(20)
+                    opacity: 1 if root.title != 'None' else 0
+                    padding: [0, dp(5), 0, 0] if root.title != 'None' else [0, 0, 0, 0]
+                MDBoxLayout:
+                    id: translations_box
+                    orientation: 'horizontal'
+                    adaptive_height: True
+                HoverMDFlatButton:
+                    id: btn_download
+                    text: f'Скачать в озвучке: {root.activeTranslation}' if root.activeTranslation != '' else 'Выберите озвучку'
+                    theme_text_color: "Custom"
+                    text_color: 'white'
+#                    opacity: 1 if root.activeTranslation != '' else 0
+                    disabled: False if root.activeTranslation != '' else True
+                    on_release: root.controller.addDownload(root.activeTranslation)
+
 

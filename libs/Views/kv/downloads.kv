@@ -1,8 +1,128 @@
+#:import Factory kivy.factory.Factory
+#:import OpacityScrollEffectSmooth libs.effects.opacityscrollsmooth
+#:import Window kivy.core.window.Window
+#:import truncate_string libs.Views.common.truncate_string
+
+<DownloadsItem>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: dp(100)
+    HoverMDCardNoScale:
+        id: card
+        radius: [dp(8)]
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: dp(100)
+        MDRelativeLayout:
+            RoundedProgressBar:
+                orientation: 'horizontal'
+                value: root.progress
+                color: [1, 1, 1, 0.05] if root.progress > 0 else [0, 0, 0, 0]
+                back_color: [0, 0, 0, 0]
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(10)
+                padding: [dp(5), dp(5), dp(5), dp(5)]
+                HoverMDCardButton:
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    size_hint: None, None
+                    height: dp(90)
+                    width: self.height / 1.5
+                    on_release:
+                        root.controller.open_item(root.url)
+                    FitImage:
+                        id: image
+                        radius: [8, 8, 8, 8]
+                        source: root.thumbnail
+                MDAnchorLayout:
+                    anchor_y: 'top'
+                    padding: [0, dp(5), 0, 0]
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        adaptive_height: True
+                        LoaderLabel:
+                            text: truncate_string(root.title, 61) + ' (' + root.year + ')'
+                            font_style: 'H6'
+                            size_hint: 1, None
+                            default_size_x: dp(350)
+                            default_size_y: dp(30)
+                            height: self.texture_size[1] or dp(30)
+                        LoaderLabel:
+                            text: root.url
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.accent_color
+                            font_style: 'Caption'
+                            size_hint: 1, None
+                            default_size_x: dp(100)
+                            default_size_y: dp(10)
+                            height: self.texture_size[1] or dp(10)
+                        LoaderLabel:
+                            markup: True
+                            text: f'Категория: [b]{root.sub_type}[/b]' if root.sub_type else ''
+                            font_style: 'Body2'
+                            size_hint: 1, None
+                            default_size_x: dp(100)
+                            default_size_y: dp(20)
+                            height: self.texture_size[1] or dp(20)
+                            opacity: 1 if root.sub_type != 'None' else 0
+                            padding: [0, dp(5), 0, 0] if root.sub_type != 'None' else [0, 0, 0, 0]
+                        LoaderLabel:
+                            markup: True
+                            text: 'Ready: ' + str(root.progress) + '%, speed: ' + root.speed + ', time: ' + root.remaining_time
+                            font_style: 'Body2'
+                            size_hint: 1, None
+                            default_size_x: dp(100)
+                            default_size_y: dp(20)
+                            height: self.texture_size[1] or dp(20)
+                            padding: [0, dp(5), 0, 0]
+                MDBoxLayout:
+                    adaptive_size: True
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    orientation: 'horizontal'
+                    HoverMDIconButton:
+                        id: btn_pause
+                        theme_icon_color: "Custom"
+                        icon_color: 'white'
+                        icon: 'play' if root.isPaused else 'pause'
+                        on_release: root.controller.ppDownload(root.hdrezka_id)
+                    HoverMDIconButton:
+                        id: btn_remove
+                        theme_icon_color: "Custom"
+                        icon_color: 'white'
+                        icon: 'close-thick'
+                        on_release: root.controller.removeDownload(root.hdrezka_id)
+
+<RVDownloadsItems>:
+    id: recycle_root
+    viewclass: 'DownloadsItem'
+    pos_hint_x: {"center": .5}
+    always_overscroll: False
+    effect_cls: Factory.DampedScrollEffect
+    scroll_wheel_distance: dp(30)
+    smooth_scroll_end: 20
+    md_bg_color: 'red'
+    size_hint_x: None
+    width: Window.size[0] if Window.size[0] < dp(1000) else dp(1000)
+    MDRecycleGridLayout:
+        padding: [0, dp(3), 0, 0]
+        size_hint_y: None
+        height: self.minimum_height
+        size_hint_x: None
+        width: Window.size[0] if Window.size[0] < dp(1000) else dp(1000)
+        spacing: dp(10)
+        cols: 1
+        default_height: dp(100)
+        default_width: Window.size[0] - dp(20) if Window.size[0] < dp(1000) else dp(980)
+
 <DownloadsScreen>:
     MDRelativeLayout:
-        MDBoxLayout:
-            id: downloads_screen_box
-            padding: [dp(10), 0, 0, dp(10)]
+        MDAnchorLayout:
+            anchor_x: 'center'
+            MDBoxLayout:
+                id: downloads_screen_box
+                padding: [dp(10), 0, 0, dp(10)]
+                size_hint_x: None
+                width: Window.size[0] if Window.size[0] < dp(1000) else dp(1000)
         MDLabel:
             id: downloads_empty_indicator
             text: 'Загрузок нет ;)'

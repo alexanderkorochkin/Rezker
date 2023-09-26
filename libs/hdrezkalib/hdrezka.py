@@ -40,7 +40,11 @@ class HdRezkaApi:
 
 	@cached_property
 	def title_en(self):
-		return self.soup.find(class_="b-post__origtitle").get_text().strip()
+		try:
+			out = self.soup.find(class_="b-post__origtitle").get_text().strip()
+		except Exception:
+			out = ''
+		return out
 
 	def findInfoTable(self, request):
 		table = self.soup.find("table", {"class": "b-post__info"})
@@ -119,6 +123,7 @@ class HdRezkaApi:
 				return int(tmp.split(",")[1].strip())
 
 			arr[getTranslationName(self.soup)] = getTranslationID(self.page)
+
 		return arr
 
 	@staticmethod
@@ -202,7 +207,7 @@ class HdRezkaApi:
 			if r['success']:
 				arr = self.clearTrash(r['url']).split(",")
 				stream = HdRezkaStream( season=season, episode=episode,
-										name=self.name, translator_id=data['translator_id'],
+										name=self.title, translator_id=data['translator_id'],
 										subtitles={'data':  r['subtitle'], 'codes': r['subtitle_lns']}
 									  )
 				for i in arr:
@@ -247,6 +252,8 @@ class HdRezkaApi:
 
 			elif translation in self.translators:
 				tr_id = self.translators[translation]
+			elif translation == 'None':
+				tr_id = list(self.translators.values())[0]
 			else:
 				raise ValueError(f'Translation "{translation}" is not defined')
 
