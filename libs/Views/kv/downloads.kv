@@ -2,17 +2,19 @@
 #:import OpacityScrollEffectSmooth libs.effects.opacityscrollsmooth
 #:import Window kivy.core.window.Window
 #:import truncate_string libs.Views.common.truncate_string
+#:import STATUS libs.Models.downloads.STATUS
 
 <DownloadsItem>:
     orientation: 'vertical'
     size_hint_y: None
     height: dp(100)
-    HoverMDCardNoScale:
+    MDCard:
         id: card
         radius: [dp(8)]
         orientation: 'vertical'
         size_hint: 1, None
         height: dp(100)
+        opacity: 1 if root.status == 'Downloading' else 0.6
         MDRelativeLayout:
             RoundedProgressBar:
                 orientation: 'horizontal'
@@ -23,7 +25,7 @@
                 orientation: 'horizontal'
                 spacing: dp(10)
                 padding: [dp(5), dp(5), dp(5), dp(5)]
-                HoverMDCardButton:
+                MDCardButton:
                     pos_hint: {"center_x": .5, "center_y": .5}
                     size_hint: None, None
                     height: dp(90)
@@ -68,7 +70,7 @@
                             padding: [0, dp(5), 0, 0] if root.sub_type != 'None' else [0, 0, 0, 0]
                         LoaderLabel:
                             markup: True
-                            text: 'Ready: ' + str(root.progress) + '%, speed: ' + root.speed + ', time: ' + root.remaining_time
+                            text: root.status + ': [b]' + root.downloaded_size + '/' + root.total_size + '[/b], speed: [b]' + root.speed + '[/b], time: [b]' + root.remaining_time + '[/b]'
                             font_style: 'Body2'
                             size_hint: 1, None
                             default_size_x: dp(100)
@@ -76,21 +78,44 @@
                             height: self.texture_size[1] or dp(20)
                             padding: [0, dp(5), 0, 0]
                 MDBoxLayout:
+                    id: controls_box
                     adaptive_size: True
                     pos_hint: {"center_x": .5, "center_y": .5}
                     orientation: 'horizontal'
-                    HoverMDIconButton:
-                        id: btn_pause
-                        theme_icon_color: "Custom"
-                        icon_color: 'white'
-                        icon: 'play' if root.isPaused else 'pause'
-                        on_release: root.controller.ppDownload(root.hdrezka_id)
-                    HoverMDIconButton:
+                    MDIconButton:
                         id: btn_remove
+                        ripple_alpha: 0.
+                        radius: [8]
                         theme_icon_color: "Custom"
-                        icon_color: 'white'
+                        icon_color: app.theme_cls.accent_color
+                        icon: 'folder-open'
+                        on_release: root.controller.openExplorer(root.fullpath, mode='select')
+                    MDIconButton:
+                        id: btn_remove
+                        ripple_alpha: 0.
+                        radius: [8]
+                        theme_icon_color: "Custom"
+                        icon_color: app.theme_cls.accent_color
+                        icon: 'link'
+                        on_release: app.copy(root.link)
+                    MDIconButton:
+                        id: btn_pause
+                        ripple_alpha: 0.
+                        radius: [8]
+                        theme_icon_color: "Custom"
+                        icon_color: app.theme_cls.accent_color
+                        icon: 'play' if root.status == STATUS.PAUSED else 'pause'
+                        on_release: root.controller.ppDownload(root.download_id)
+                    MDIconButton:
+                        id: btn_remove
+                        ripple_alpha: 0.
+                        radius: [8]
+                        theme_icon_color: "Custom"
+                        icon_color: app.theme_cls.accent_color
                         icon: 'close-thick'
-                        on_release: root.controller.removeDownload(root.hdrezka_id)
+                        on_release:
+                            root.status = 'Removing'
+                            root.controller.removeDownload(root.download_id)
 
 <RVDownloadsItems>:
     id: recycle_root

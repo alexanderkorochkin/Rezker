@@ -11,6 +11,7 @@ class SettingsController:
 
         # Default Settings
         self.model.set('downloads_destination', 'C:\HDRezker')
+        self.model.set('library_destination', 'C:\HDRezker')
 
     def get_screen(self):
         return self.view

@@ -1,3 +1,4 @@
+from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
 from kivy.factory import Factory
 from kivy.loader import Loader
@@ -26,6 +27,10 @@ class RezkerApp(MDApp):
         self.msettings = SettingsController(app=self, name='settings')
         self.settingsScreen = self.msettings.get_screen()
 
+    @staticmethod
+    def copy(link: str):
+        Clipboard.copy(link)
+
     def on_resize(self, window, size):
         if size[0] < 400:
             self.COLS_LIBRARY = 2
@@ -37,6 +42,9 @@ class RezkerApp(MDApp):
             self.COLS_LIBRARY = 5
         else:
             self.COLS_LIBRARY = 7
+
+    def on_stop(self):
+        self.rootScreen.downloadsController.on_close()
 
     def on_start(self):
         Config.set('graphics', 'resizable', True)

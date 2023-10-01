@@ -1,10 +1,20 @@
 import copy
 import os
 
+import multitasking
 from kivy.clock import mainthread, Clock
 from kivy.properties import partial
 from pySmartDL import SmartDL
 from pySmartDL.control_thread import ControlThread
+
+
+class STATUS:
+    READY = 'Ready'
+    DOWNLOADING = 'Downloading'
+    FINISHED = 'Finished'
+    PAUSED = 'Paused'
+    ERROR = 'Error'
+    COMBINING = 'Combining'
 
 
 class DownloadsModel:
@@ -14,128 +24,152 @@ class DownloadsModel:
         self.controller = controller
         self._observers = []
         self.data = []
-        self.downloaders = []
-        self.download_orders = []
+        self.dictionary = {}
+        self.updateTask = Clock.schedule_interval(self.logic, 1)
+        self.countDownloading = 0
+        self.MAX_DOWNLOADS = 2
+        self.isClosing = False
 
+    def logic(self, *args):
+        if not self.isClosing:
+            if len(self.data) > 0:
+                for download_id in list(self.dictionary.keys()):
+                    if self.isAlreadyDownloading(download_id):
 
-        self.startTask = None
-        Clock.schedule_interval(self.check_orders, 2)
+                        downloader = self.getDataItemDownloader(download_id)
+                        item = self.getDataItem(download_id)
 
-        self.updaterProgress = 'None'
+                        if item['doRemove']:
+                            self.removeDownload(download_id)
+                            break
+                        else:
+                            if downloader.get_status() == 'finished':
+                                item['status'] = STATUS.FINISHED
+                                self.removeDownload(download_id)
+                            elif downloader.get_status() == 'downloading':
+                                item['status'] = STATUS.DOWNLOADING
+                                item['progress'] = round(downloader.get_progress() * 100, 2)
+                                item['speed'] = str(downloader.get_speed(human=True))
+                                item['remaining_time'] = str(downloader.get_eta(human=True))
+                                item['total_size'] = str(downloader.get_final_filesize(human=True))
+                                item['downloaded_size'] = str(downloader.get_dl_size(human=True))
+                            elif downloader.get_status() == 'ready':
+                                item['status'] = STATUS.READY
+                                if self.countDownloading < self.MAX_DOWNLOADS:
+                                    self.startDownload(download_id)
+                            elif downloader.get_status() == 'paused':
+                                item['status'] = STATUS.PAUSED
+                            elif downloader.get_status() == 'combining':
+                                item['status'] = STATUS.COMBINING
+                            else:
+                                item['status'] = STATUS.ERROR
 
-    def check_orders(self, *args):
-        count_active_downloaders = 0
-        for downloader in self.downloaders:
-            if downloader[1].get_status() == 'downloading':
-                count_active_downloaders += 1
-            elif downloader[1].get_status() == 'finished':
-                self.controller.removeDownload(downloader[0])
+                Clock.schedule_once(self.notify_observers)
 
-        if count_active_downloaders < 1 and len(self.download_orders) > 0:
-            key = self.download_orders[0][0]
-            if not self.startTask and self.downloaders[self.getDownloaderIndexByID(key)][1].get_status() == 'ready':
-                self.remove_order(key)
-                self.startTask = Clock.schedule_once(partial(self.startDownload, key), 1)
+    def startDownload(self, download_id: str, *args):
+        self.getDataItemDownloader(download_id).start(blocking=False)
+        self.getDataItem(download_id)['status'] = STATUS.DOWNLOADING
+        self.countDownloading += 1
+        self.notify_observers()
 
-    def remove_order(self, key: str):
-        i = -1
-        for order in self.download_orders:
-            i += 1
-            if order[0] == key:
-                self.download_orders.pop(i)
-                break
-
-    def add_order(self, key: str, obj):
-        self.download_orders.append([key, obj])
-
-    def getDownloaderIndexByID(self, hdrezka_id: str):
-        index = -1
-        for item in self.downloaders:
-            index += 1
-            if str(item[0]) == str(hdrezka_id):
-                return index
-        return -1
-
-    def getDataIndexByID(self, hdrezka_id: str):
-        index = -1
-        for item in self.data:
-            index += 1
-            if item['hdrezka_id'] == hdrezka_id:
-                return index
-        return -1
-
-    def doUpdateProgress(self, *args):
-        if len(self.downloaders) > 0 and len(self.data) > 0:
-            if self.updaterProgress == 'None':
-                self.updaterProgress = Clock.schedule_interval(self.updateProgress, 1)
+    def ppDownload(self, download_id: str):
+        if self.getDataItem(download_id)['status'] == STATUS.PAUSED:
+            self.resumeDownload(download_id)
         else:
-            if self.updaterProgress != 'None':
-                self.updaterProgress.cancel()
-                self.updaterProgress = 'None'
+            self.pauseDownload(download_id)
 
-    def updateProgress(self, *args):
-        for i in range(len(self.downloaders)):
+    def resumeDownload(self, download_id: str):
+        self.getDataItemDownloader(download_id).resume()
+        self.getDataItem(download_id)['status'] = STATUS.DOWNLOADING
+        self.notify_observers()
+
+    def pauseDownload(self, download_id: str):
+        self.getDataItemDownloader(download_id).pause()
+        self.getDataItem(download_id)['status'] = STATUS.PAUSED
+        self.notify_observers()
+
+    def setDoRemoveDownload(self, download_id: str):
+        self.getDataItem(download_id)['doRemove'] = True
+
+    def removeDownload(self, download_id: str):
+        if not self.getDataItemDownloader(download_id).isFinished():
+            file = self.getDataItem(download_id)['fullpath']
+            self.getDataItemDownloader(download_id).stop()
+            Clock.schedule_once(partial(self.clearCache, file), 1)
+        self.removeDataItem(download_id)
+        self.countDownloading -= 1
+
+    def addDownload(self, link, fullpath, itemBaseInformation: dict, season=None, episode=None):
+        downloadInfo = itemBaseInformation.copy()
+        if season and episode:
+            downloadInfo['download_id'] = f"{downloadInfo['hdrezka_id']}.{season}.{episode}"
+        else:
+            downloadInfo['download_id'] = f"{downloadInfo['hdrezka_id']}"
+
+        if self.isAlreadyDownloading(downloadInfo['download_id']):
+            return
+
+        downloadInfo['controller'] = self.controller
+        downloadInfo['model'] = self
+        downloadInfo['link'] = link
+        downloadInfo['fullpath'] = fullpath
+        downloadInfo['status'] = STATUS.READY
+        downloadInfo['progress'] = 0
+        downloadInfo['speed'] = '0'
+        downloadInfo['remaining_time'] = '0'
+        downloadInfo['total_size'] = '0'
+        downloadInfo['downloaded_size'] = '0'
+        downloadInfo['downloader'] = SmartDL(link, fullpath)
+        downloadInfo['doRemove'] = False
+
+        self.addDataItem(downloadInfo.copy(), downloadInfo['download_id'])
+
+    def isAlreadyDownloading(self, download_id: str) -> bool:
+        if download_id in list(self.dictionary.keys()):
+            return True
+        else:
+            return False
+
+    def getDataItemDownloader(self, download_id: str) -> SmartDL:
+        return self.getDataItem(download_id)['downloader']
+
+    def getDataItem(self, download_id: str) -> dict:
+        return self.data[self.idToIndex(download_id)]
+
+    def removeDataItem(self, download_id: str):
+        self.data.pop(self.idToIndex(download_id))
+        doShift = False
+        for key in list(self.dictionary.keys()):
+            if doShift:
+                self.dictionary[key] = self.dictionary[key] - 1
+            if key == download_id:
+                doShift = True
+        self.dictionary.pop(download_id)
+        self.notify_observers()
+
+    def addDataItem(self, itemInfo: dict, download_id: str):
+        self.data.append(itemInfo.copy())
+        self.dictionary[download_id] = len(self.data) - 1
+        self.notify_observers()
+
+    def idToIndex(self, download_id: str):
+        return self.dictionary[download_id]
+
+    @multitasking.task
+    def clearCache(self, file, *args):
+        i = 0
+        while os.path.exists(str(file + f'.{i:03}')):
             try:
-                downloader = self.downloaders[i][1]
-                self.data[i]['speed'] = downloader.get_speed(human=True)
-                self.data[i]['remaining_time'] = downloader.get_eta(human=True)
-                self.data[i]['progress'] = round(downloader.get_progress() * 100, 2)
+                os.remove(str(file + f'.{i:03}'))
             except Exception:
-                pass
-        self.notify_observers()
+                print(f"Unable to remove file: {str(file + f'.{i:03}')}.")
+            i += 1
 
-    def startDownload(self, hdrezka_id: str, *args):
-        self.downloaders[self.getDownloaderIndexByID(hdrezka_id)][1].start(blocking=False)
-        self.data[self.getDataIndexByID(hdrezka_id)]['isStarted'] = True
-        self.data[self.getDataIndexByID(hdrezka_id)]['isPaused'] = False
-        Clock.schedule_once(self.doUpdateProgress)
-        self.notify_observers()
-        self.startTask = None
-
-    def ppDownload(self, hdrezka_id: str):
-        if self.data[self.getDataIndexByID(hdrezka_id)]['isPaused']:
-            self.resumeDownload(hdrezka_id)
-        else:
-            self.pauseDownload(hdrezka_id)
-
-    def resumeDownload(self, hdrezka_id: str):
-        self.downloaders[self.getDownloaderIndexByID(hdrezka_id)][1].resume()
-        self.data[self.getDataIndexByID(hdrezka_id)]['isPaused'] = False
-        Clock.schedule_once(self.doUpdateProgress)
-        self.notify_observers()
-
-    def pauseDownload(self, hdrezka_id: str):
-        self.downloaders[self.getDownloaderIndexByID(hdrezka_id)][1].pause()
-        self.data[self.getDataIndexByID(hdrezka_id)]['isPaused'] = True
-        Clock.schedule_once(self.doUpdateProgress)
-        self.notify_observers()
-
-    def removeDownload(self, hdrezka_id: str):
-        if not self.downloaders[self.getDownloaderIndexByID(hdrezka_id)][1].isFinished():
-            self.downloaders[self.getDownloaderIndexByID(hdrezka_id)][1].stop()
-        self.downloaders.pop(self.getDownloaderIndexByID(hdrezka_id))
-        self.data.pop(self.getDataIndexByID(hdrezka_id))
-        Clock.schedule_once(self.doUpdateProgress)
-        self.notify_observers()
-
-    def addDownload(self, link, fullpath, info: dict):
-        downloader = SmartDL(link, fullpath)
-        self.downloaders.append([str(info['hdrezka_id']), downloader])
-        temp = copy.deepcopy(info)
-        temp['controller'] = self.controller
-        temp['model'] = self
-        temp['link'] = link
-        temp['fullpath'] = fullpath
-        temp['isPaused'] = False
-        temp['isStarted'] = False
-        temp['isFinished'] = False
-        temp['progress'] = 0
-        temp['speed'] = ''
-        temp['remaining_time'] = ''
-        self.data.append(temp)
-        self.notify_observers()
-
-        self.add_order(info['hdrezka_id'], downloader)
+    def on_close(self):
+        self.isClosing = True
+        self.updateTask.cancel()
+        for download_id in list(self.dictionary.keys()):
+            self.removeDownload(download_id)
 
     def add_observer(self, observer):
         self._observers.append(observer)

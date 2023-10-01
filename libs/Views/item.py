@@ -1,15 +1,10 @@
 import os
 from kivy.lang import Builder
-from kivy.metrics import dp
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, ListProperty, BooleanProperty
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDFlatButton
-from kivymd.uix.chip import MDChip
-from kivymd.uix.label import MDLabel
 from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.screen import MDScreen
 from libs.Common.observer import Observer
-from libs.Views.common import HoverMDFlatButton, HoverMDCard
+from libs.Views.common import HoverMDFlatButton
 
 
 class TranslationItem(HoverMDFlatButton):

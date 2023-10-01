@@ -29,14 +29,17 @@ class DownloadsItem(MDBoxLayout):
     duration = StringProperty('')
     description = StringProperty('')
 
+    downloader = ObjectProperty(None)
+    download_id = StringProperty('')
     link = StringProperty('')
     fullpath = StringProperty('')
-    isPaused = BooleanProperty(False)
-    isStarted = BooleanProperty(False)
-    isFinished = BooleanProperty(False)
+    status = StringProperty('None')
     progress = NumericProperty(0)
     speed = StringProperty('0')
     remaining_time = StringProperty('0')
+    total_size = StringProperty('0')
+    downloaded_size = StringProperty('0')
+    doRemove = BooleanProperty(False)
 
 
 class RVDownloadsItems(MDRecycleView):
