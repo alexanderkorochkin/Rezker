@@ -1,0 +1,20 @@
+{
+    "downloads_destination": {
+        "type": "SString",
+        "title": "Downloads destination",
+        "sub_title": "downloads_destination",
+        "value": "C:\\HDRezker"
+    },
+    "library_destination": {
+        "type": "SString",
+        "title": "Library folder",
+        "sub_title": "library_destination",
+        "value": "C:\\HDRezker"
+    },
+    "MAX_ACTIVE_DOWNLOADS": {
+        "type": "SNumeric",
+        "title": "Max number of active downloads",
+        "sub_title": "MAX_ACTIVE_DOWNLOADS",
+        "value": 1
+    }
+}

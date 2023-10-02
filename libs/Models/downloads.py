@@ -2,6 +2,7 @@ import copy
 import os
 
 import multitasking
+from kivy import Logger
 from kivy.clock import mainthread, Clock
 from kivy.properties import partial
 from pySmartDL import SmartDL
@@ -27,7 +28,6 @@ class DownloadsModel:
         self.dictionary = {}
         self.updateTask = Clock.schedule_interval(self.logic, 1)
         self.countDownloading = 0
-        self.MAX_DOWNLOADS = 2
         self.isClosing = False
 
     def logic(self, *args):
@@ -50,18 +50,19 @@ class DownloadsModel:
                                 item['status'] = STATUS.DOWNLOADING
                                 item['progress'] = round(downloader.get_progress() * 100, 2)
                                 item['speed'] = str(downloader.get_speed(human=True))
-                                item['remaining_time'] = str(downloader.get_eta(human=True))
+                                item['remaining_time'] = str(downloader.get_eta(human=True)) if str(downloader.get_eta(human=True)) != '0 seconds' else '∞'
                                 item['total_size'] = str(downloader.get_final_filesize(human=True))
                                 item['downloaded_size'] = str(downloader.get_dl_size(human=True))
                             elif downloader.get_status() == 'ready':
                                 item['status'] = STATUS.READY
-                                if self.countDownloading < self.MAX_DOWNLOADS:
+                                if self.countDownloading < self.app.msettings.get('MAX_ACTIVE_DOWNLOADS'):
                                     self.startDownload(download_id)
                             elif downloader.get_status() == 'paused':
                                 item['status'] = STATUS.PAUSED
                             elif downloader.get_status() == 'combining':
                                 item['status'] = STATUS.COMBINING
                             else:
+                                Logger.warning(f"Catch error: {item['title']}")
                                 item['status'] = STATUS.ERROR
 
                 Clock.schedule_once(self.notify_observers)
@@ -116,7 +117,7 @@ class DownloadsModel:
         downloadInfo['status'] = STATUS.READY
         downloadInfo['progress'] = 0
         downloadInfo['speed'] = '0'
-        downloadInfo['remaining_time'] = '0'
+        downloadInfo['remaining_time'] = '∞'
         downloadInfo['total_size'] = '0'
         downloadInfo['downloaded_size'] = '0'
         downloadInfo['downloader'] = SmartDL(link, fullpath)

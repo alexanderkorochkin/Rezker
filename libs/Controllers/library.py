@@ -26,17 +26,5 @@ class LibraryController:
         item['model'] = self.model
         self.model.add_item(item)
 
-    def animate_item(self, item):
-        pass
-        # Доделать!
-        # x, y = self.app.rootScreen.libraryScreen.to_widget(*item.to_window(*item.pos))
-        # new_item = item.__class__(size_hint=[None, None], x=x, y=y, size=item.size, source=item.source, radius=item.radius)
-        #
-        # target = self.app.rootScreen.itemScreen.ids.thumbnail
-        # target_x, target_y = self.app.rootScreen.itemScreen.to_widget(*target.to_window(*target.pos))
-        #
-        # self.app.rootScreen.add_widget(new_item)
-        # Animation(x=target_x, y=target_y, size=target.size, d=0.5).start(new_item)
-
     def open_item(self, link):
         self.app.rootScreen.menuController.search(link)

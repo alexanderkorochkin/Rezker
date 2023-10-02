@@ -15,9 +15,7 @@
         size_hint: None, None
         width: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)
         height: self.width * 1.5
-        on_release:
-            root.controller.animate_item(image)
-            root.controller.open_item(root.url)
+        on_release: root.controller.open_item(root.url)
         MDAnchorLayout:
             anchor_y: 'bottom'
             FitImage:

@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Union
 
 from kivy.animation import Animation
@@ -448,6 +449,12 @@ class HoverMDCard(MDCard, HoverBehavior, ScaleBehavior):
 
     def on_leave(self):
         self.normal_scale()
+
+
+def str_to_class(module, class_name: str):
+    if module is None:
+        module = __name__
+    return getattr(sys.modules[module], class_name)
 
 
 Builder.load_file(os.path.join(os.path.dirname(__file__), "kv/common.kv"))

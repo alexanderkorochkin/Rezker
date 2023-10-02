@@ -36,7 +36,7 @@ class DownloadsItem(MDBoxLayout):
     status = StringProperty('None')
     progress = NumericProperty(0)
     speed = StringProperty('0')
-    remaining_time = StringProperty('0')
+    remaining_time = StringProperty('∞')
     total_size = StringProperty('0')
     downloaded_size = StringProperty('0')
     doRemove = BooleanProperty(False)
@@ -64,8 +64,12 @@ class DownloadsScreen(MDScreen, Observer):
         self.ids.downloads_screen_box.add_widget(self.recycleList)
 
     def model_is_changed(self):
-        self.recycleList.data = []
-        self.recycleList.data = self.model.data.copy()
+        if len(self.recycleList.data) == len(self.model.data):
+            self.recycleList.data = self.model.data.copy()
+            self.recycleList.refresh_from_data()
+        else:
+            self.recycleList.data = []
+            self.recycleList.data = self.model.data.copy()
         self.ids.downloads_empty_indicator.text = ''
 
 
