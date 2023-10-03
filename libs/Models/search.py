@@ -1,7 +1,7 @@
 from kivy.clock import mainthread
 
 
-class LibraryModel:
+class SearchModel:
 
     def __init__(self):
         self._data = []
@@ -17,8 +17,14 @@ class LibraryModel:
         self._data = value
         self.notify_observers()
 
-    def add_item(self, itemBaseInformation: dict):
+    def add_item(self, itemBaseInformation: dict, controller, model):
+        itemBaseInformation['controller'] = controller
+        itemBaseInformation['model'] = model
         self._data.append(itemBaseInformation.copy())
+        self.notify_observers()
+
+    def clear_items(self):
+        self._data.clear()
         self.notify_observers()
 
     def add_observer(self, observer):

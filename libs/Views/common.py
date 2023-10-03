@@ -7,7 +7,7 @@ from kivy.clock import Clock
 from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.metrics import dp
+from kivy.metrics import dp, sp
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, NumericProperty, StringProperty
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.textinput import TextInput
@@ -17,12 +17,16 @@ from kivymd.uix.behaviors import HoverBehavior, ScaleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton, MDFlatButton, MDIconButton
 from kivymd.uix.card import MDCard
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
 from kivymd.uix.list import OneLineListItem
 from kivymd.uix.menu import MDDropdownMenu
 
 import kivymd.material_resources as m_res
 from kivymd.uix.progressbar import MDProgressBar
+from kivymd.uix.textfield import MDTextField
+
+from libs.Common.utils import keycodes
 
 
 def truncate_string(string, N, screen_brackets=False, no_space=True):
@@ -44,6 +48,150 @@ def truncate_string(string, N, screen_brackets=False, no_space=True):
         out = out.replace(']', escape_markup(']'))
 
     return out
+
+
+class MDDialogModded(MDDialog):
+
+    def __init__(self, key_handler=None, **kwargs):
+        super().__init__(**kwargs)
+        self.key_handler = key_handler
+        self.isOpen = False
+        Window.bind(on_keyboard=self.on_keyboard_handler)
+
+    def on_keyboard_handler(self, _window, key, *_args):
+        if self.key_handler:
+            self.key_handler(_window, key)
+
+
+class LDialogEnterString:
+
+    def __init__(self, app):
+        self.dialog = None
+        self.app = app
+
+        self._validate_type = "all"
+        self._title = 'title'
+        self._confirm_text = 'confirm_text'
+        self._cancel_text = 'cancel_text'
+        self._confirm_action = None
+        self._text = 'text'
+        self._hint_text = 'hint_text'
+
+    def PreCache(self):
+        self.RealOpen()
+        self.dialog.isOpen = False
+        self.dialog.dismiss(force=True)
+
+    def on_keyboard(self, _window, key):
+        if self.dialog.isOpen:
+            if key == keycodes['enter']:
+                self.Confirm()
+                return True
+
+    def RealOpen(self):
+        if not self.dialog:
+            self.dialog = MDDialogModded(
+                title=self._title,
+                key_handler=self.on_keyboard,
+                content_cls=MDTextField(text=self._text, hint_text=self._hint_text),
+                type="custom",
+                buttons=[
+                    HoverMDFlatButton(
+                        text=self._cancel_text,
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.primary_color,
+                        on_release=self.Close,
+                    ),
+                    HoverMDFlatButton(
+                        new_bg_color=self.app.theme_cls.primary_color,
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.bg_darkest,
+                        text=self._confirm_text,
+                        on_release=self.Confirm,
+                    )
+                ]
+            )
+        self.dialog.content_cls._hint_text_font_size = sp(10)
+        self.dialog.isOpen = True
+        self.dialog.open()
+
+    def Open(self, validate_type='all', title='', confirm_text='CONFIRM', cancel_text='CANCEL', confirm_action=None, text='', hint_text=''):
+        changed = False
+        if self._validate_type != validate_type:
+            self._validate_type = validate_type
+            changed = True
+        if self._title != title:
+            self._title = title
+            changed = True
+        if self._confirm_text != confirm_text:
+            self._confirm_text = confirm_text
+            changed = True
+        if self._cancel_text != cancel_text:
+            self._cancel_text = cancel_text
+            changed = True
+        if self._confirm_action != confirm_action:
+            self._confirm_action = confirm_action
+            changed = True
+        if self._text != text:
+            self._text = text
+            changed = True
+        if self._hint_text != hint_text:
+            self._hint_text = hint_text
+            changed = True
+        if changed:
+            self.Rebase()
+        self.RealOpen()
+
+    def Close(self, *args):
+        self.dialog.content_cls.hint_text = self._hint_text
+        self.dialog.isOpen = False
+        self.dialog.dismiss(force=True)
+
+    def getValidatedValue(self):
+        s = self._text
+        if 'int' in self._validate_type:
+            s = int(s)
+        elif 'float' in self._validate_type:
+            self._text.replace(",", ".")
+            s = float(s)
+        return s
+
+    def Validate(self):
+        validate = True
+        s = self._text
+        if self._validate_type == 'int':
+            validate = s.isdigit()
+        elif self._validate_type == 'sint':
+            if s[0] in ('-', '+'):
+                validate = s[1:].isdigit()
+            else:
+                validate = s.isdigit()
+        elif self._validate_type == 'float':
+            self._text.replace(",", ".")
+            validate = s.replace(".", "").isnumeric()
+        elif self._validate_type == 'sfloat':
+            self._text.replace(",", ".")
+            if s[0] in ('-', '+'):
+                validate = s[1:].replace(".", "").isnumeric()
+            else:
+                validate = s.replace(".", "").isnumeric()
+        return validate
+
+    def Confirm(self, *args):
+        self._text = self.dialog.content_cls.text
+        if self.Validate():
+            self.Close()
+            if self._confirm_action:
+                self._confirm_action(self.getValidatedValue())
+        else:
+            self.dialog.content_cls.hint_text = f'Неверный ввод! Необходимый тип данных: {str(self._validate_type)}'
+
+    def Rebase(self):
+        self.dialog.title = self._title
+        self.dialog.buttons[0].text = self._cancel_text
+        self.dialog.buttons[1].text = self._confirm_text
+        self.dialog.content_cls.text = self._text
+        self.dialog.content_cls.hint_text = self._hint_text
 
 
 class LoaderLabel(MDLabel):
@@ -449,12 +597,6 @@ class HoverMDCard(MDCard, HoverBehavior, ScaleBehavior):
 
     def on_leave(self):
         self.normal_scale()
-
-
-def str_to_class(module, class_name: str):
-    if module is None:
-        module = __name__
-    return getattr(sys.modules[module], class_name)
 
 
 Builder.load_file(os.path.join(os.path.dirname(__file__), "kv/common.kv"))

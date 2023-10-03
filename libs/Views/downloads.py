@@ -1,6 +1,5 @@
 import os
 
-from kivy.clock import mainthread
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -40,6 +39,9 @@ class DownloadsItem(MDBoxLayout):
     total_size = StringProperty('0')
     downloaded_size = StringProperty('0')
     doRemove = BooleanProperty(False)
+
+    season = StringProperty('')
+    episode = StringProperty('')
 
 
 class RVDownloadsItems(MDRecycleView):

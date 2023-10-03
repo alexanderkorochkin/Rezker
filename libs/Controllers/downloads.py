@@ -47,7 +47,7 @@ class DownloadsController:
             else:
                 new_path = '\\'.join(path.split('\\')[:-1:])
                 if last_path == new_path:
-                    Logger.warning(f'Path ({last_path}) not exists!')
+                    Logger.warning(f'Downloads.Controller: Path ({last_path}) not exists!')
                     return
                 self.openExplorer(new_path, 'open', path)
 
@@ -75,7 +75,7 @@ class DownloadsController:
                 fullpath = os.path.join(path, normalName + f'.{file_extension}')
                 self.model.addDownload(link, fullpath, itemBaseInformation.copy())
             except Exception:
-                Logger.warning(f"Error while trying to get info of film: {itemBaseInformation['title']}")
+                Logger.warning(f"Downloads.Controller: Error while trying to get info of film: {itemBaseInformation['title']}")
         else:
             for season in list(item.seriesInfo[str(translation)]['seasons'].keys()):
                 for episode in item.seriesInfo[str(translation)]['episodes'][season]:
@@ -92,4 +92,4 @@ class DownloadsController:
                         fullpath = os.path.join(path, normalName + f'.{file_extension}')
                         self.model.addDownload(link, fullpath, itemBaseInformation.copy(), season=season, episode=episode)
                     except Exception:
-                        Logger.warning(f"Error while trying to get info of series: {itemBaseInformation['title']}, S{season}E{episode}")
+                        Logger.warning(f"Downloads.Controller: Error while trying to get info of series: {itemBaseInformation['title']}, S{season}E{episode}")

@@ -43,7 +43,7 @@
                         orientation: 'vertical'
                         adaptive_height: True
                         LoaderLabel:
-                            text: truncate_string(root.title, 61) + ' (' + root.year + ')'
+                            text: truncate_string(root.title, 50) + ' (' + root.year + ')' if root.type == 'movie' else truncate_string(root.title, 50) + ' (' + root.year + ')' + ' [S' + root.season + 'E' + root.episode + ']'
                             font_style: 'H6'
                             size_hint: 1, None
                             default_size_x: dp(350)

@@ -1,6 +1,23 @@
-import validators
-from kivy.uix.screenmanager import NoTransition
+import json
+import time
+import urllib.request
+from collections import defaultdict
+from urllib.parse import quote
 
+import multitasking
+import phantomjs
+from parsel import Selector
+
+from httpx import Client
+
+import requests
+import validators
+from bs4 import BeautifulSoup
+from kivy.uix.screenmanager import NoTransition
+from requests_html import HTMLSession
+from selenium import webdriver
+
+from libs.Common.utils import getItemDataFromURL
 from libs.Models.menu import MenuModel
 from libs.Views.menu import MenuView
 
@@ -18,29 +35,17 @@ class MenuController:
     def get_screen(self):
         return self.view
 
+    @multitasking.task
     def search(self, request):
         if request == 'test':
-            self.app.rootScreen.screens['library']['controller'].add_item({'title': 'FUCK YOURSELF',
-                                                                           'thumbnail': 'https://static.hdrezka.ac/i/2013/11/30/u5282eb49ebc3sd19f40y.jpg',
-                                                                           'url': 'https://hdrezkawer.org/films/fiction/2259-interstellar-2014.html'
-                                                                           })
-        self.view.set_cursor_to_start()
-        if validators.url(request):
-            self.set_screen('item')
-            if self.last_request != request:
-                self.app.rootScreen.itemController.getItemDataFromURL(request)
+            self.app.rootScreen.screens['library']['controller'].add_item(getItemDataFromURL(self.app.provider('https://hdrezkawer.org/films/fiction/2259-interstellar-2014.html')))
         else:
-            pass
-        self.last_request = request
+            self.view.set_cursor_to_start()
+            if validators.url(request):
+                self.app.rootScreen.openItem(request)
+            else:
+                self.app.rootScreen.openSearch(request)
 
     def screen_back(self):
-        self.set_screen(self.model.last_screen, no_last=True)
+        self.app.rootScreen.set_screen(self.model.last_screen, no_last=True)
 
-    def set_screen(self, screen_name, no_last=False):
-        if no_last:
-            self.model.last_screen = ''
-        else:
-            self.model.last_screen = self.app.rootScreen.screenManager.current
-        self.app.rootScreen.screenManager.transition = NoTransition()
-        self.app.rootScreen.screenManager.current = screen_name
-        self.model.current_screen = screen_name

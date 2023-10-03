@@ -1,0 +1,15 @@
+#:import Factory kivy.factory.Factory
+#:import OpacityScrollEffectSmooth libs.effects.opacityscrollsmooth
+#:import Window kivy.core.window.Window
+
+<SearchScreen>:
+    MDRelativeLayout:
+        MDBoxLayout:
+            id: search_screen_box
+            padding: [dp(10), 0, 0, dp(10)]
+        MDLabel:
+            id: search_empty_indicator
+            text: 'Поиск...'
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.accent_color
+            halign: 'center'

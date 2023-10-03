@@ -19,7 +19,7 @@ class HdRezkaApi:
 
 	def __init__(self, url):
 		self.HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
-		self.url = url.split(".html")[0] + ".html"
+		self.url = url
 		self.site = url.split('//')[-1].split('/')[0]
 
 	@cached_property
@@ -117,7 +117,7 @@ class HdRezkaApi:
 						return tmp.split("В переводе:")[-1].strip()
 
 			def getTranslationID(s):
-				initCDNEvents = {'video.tv_series': 'initCDNSeriesEvents',
+				initCDNEvents = {'video.series': 'initCDNSeriesEvents',
 								 'video.movie'    : 'initCDNMoviesEvents'}
 				tmp = s.text.split(f"sof.tv.{initCDNEvents[f'video.{self.type}']}")[-1].split("{")[0]
 				return int(tmp.split(",")[1].strip())
@@ -259,7 +259,6 @@ class HdRezkaApi:
 
 		else:
 			tr_id = list(self.translators.values())[index]
-
 
 		if self.type == HdRezkaTVSeries:
 			return getStreamSeries(self, int(season), int(episode), tr_id)

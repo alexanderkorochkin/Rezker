@@ -2,31 +2,183 @@
 
 
 <SBool>:
-    md_bg_color: 'green'
     adaptive_height: True
-    HoverMDFlatButton:
-        text: root.title + ': ' + str(root.value)
+    HoverMDCardNoScaleButton:
+        on_release: root.tap()
+        size_hint_y: None
+        height: dp(60)
+        MDAnchorLayout:
+            anchor_y: 'center'
+            MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+                padding: [dp(10), 0, dp(10), 0]
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    spacing: dp(5)
+                    adaptive_height: True
+                    MDLabel:
+                        font_style: 'Body1'
+                        text: root.title
+                        size_hint: None, None
+                        width: self.texture_size[0]
+                        height: self.texture_size[1]
+                        text_size: None, None
+                    MDLabel:
+                        font_style: 'Caption'
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.accent_color
+                        text: root.sub_title
+                        size_hint: None, None
+                        width: self.texture_size[0]
+                        height: self.texture_size[1]
+                        text_size: None, None
+                MDBoxLayout:
+                    MDAnchorLayout:
+                        anchor_y: 'center'
+                        anchor_x: 'right'
+                        MDFlatButton:
+                            ripple_alpha: 0.
+                            font_style: 'H6'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.primary_color if root.value else app.theme_cls.accent_color
+                            text: str(root.value)
+                            on_release: root.tap()
 
 
 <SPath>:
-    md_bg_color: 'green'
     adaptive_height: True
-    HoverMDFlatButton:
-        text: root.title + ': ' + root.value
+    HoverMDCardNoScaleButton:
+        on_release: root.tap()
+        size_hint_y: None
+        height: dp(60)
+        MDAnchorLayout:
+            anchor_y: 'center'
+            MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+                padding: [dp(10), 0, dp(10), 0]
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    spacing: dp(5)
+                    adaptive_height: True
+                    MDLabel:
+                        font_style: 'Body1'
+                        text: root.title
+                        size_hint: None, None
+                        width: self.texture_size[0]
+                        height: self.texture_size[1]
+                        text_size: None, None
+                    MDLabel:
+                        font_style: 'Caption'
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.accent_color
+                        text: root.sub_title
+                        size_hint: None, None
+                        width: self.texture_size[0]
+                        height: self.texture_size[1]
+                        text_size: None, None
+                MDBoxLayout:
+                    MDAnchorLayout:
+                        anchor_y: 'center'
+                        anchor_x: 'right'
+                        MDFlatButton:
+                            ripple_alpha: 0.
+                            font_style: 'H6'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.accent_color
+                            text: str(root.value)
+                            on_release: root.tap()
 
 
 <SNumeric>:
-    md_bg_color: 'green'
     adaptive_height: True
-    HoverMDFlatButton:
-        text: root.title + ': ' + str(root.value)
+    HoverMDCardNoScaleButton:
+        on_release: root.tap()
+        size_hint_y: None
+        height: dp(60)
+        MDAnchorLayout:
+            anchor_y: 'center'
+            MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+                padding: [dp(10), 0, dp(10), 0]
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    spacing: dp(5)
+                    adaptive_height: True
+                    MDLabel:
+                        font_style: 'Body1'
+                        text: root.title
+                        size_hint: None, None
+                        width: self.texture_size[0]
+                        height: self.texture_size[1]
+                        text_size: None, None
+                    MDLabel:
+                        font_style: 'Caption'
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.accent_color
+                        text: root.sub_title
+                        size_hint: None, None
+                        width: self.texture_size[0]
+                        height: self.texture_size[1]
+                        text_size: None, None
+                MDBoxLayout:
+                    MDAnchorLayout:
+                        anchor_y: 'center'
+                        anchor_x: 'right'
+                        MDFlatButton:
+                            ripple_alpha: 0.
+                            font_style: 'H6'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.accent_color
+                            text: str(root.value)
+                            on_release: root.tap()
 
 
 <SString>:
-    md_bg_color: 'green'
     adaptive_height: True
-    HoverMDFlatButton:
-        text: root.title + ': ' + root.value
+    HoverMDCardNoScaleButton:
+        on_release: root.tap()
+        size_hint_y: None
+        height: dp(60)
+        MDAnchorLayout:
+            anchor_y: 'center'
+            MDBoxLayout:
+                orientation: 'horizontal'
+                adaptive_height: True
+                padding: [dp(10), 0, dp(10), 0]
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    spacing: dp(5)
+                    adaptive_height: True
+                    MDLabel:
+                        font_style: 'Body1'
+                        text: root.title
+                        size_hint: None, None
+                        width: self.texture_size[0]
+                        height: self.texture_size[1]
+                        text_size: None, None
+                    MDLabel:
+                        font_style: 'Caption'
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.accent_color
+                        text: root.sub_title
+                        size_hint: None, None
+                        width: self.texture_size[0]
+                        height: self.texture_size[1]
+                        text_size: None, None
+                MDBoxLayout:
+                    MDAnchorLayout:
+                        anchor_y: 'center'
+                        anchor_x: 'right'
+                        MDFlatButton:
+                            ripple_alpha: 0.
+                            font_style: 'H6'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.accent_color
+                            text: str(root.value)
+                            on_release: root.tap()
 
 
 <SettingsScreen>:
@@ -43,10 +195,12 @@
             height: all.height
             MDBoxLayout:
                 id: all
-                md_bg_color: 'red'
                 orientation: 'vertical'
                 adaptive_height: True
                 size_hint_x: None
                 width: Window.size[0] if Window.size[0] < dp(1000) else dp(1000)
                 padding: [dp(10), dp(10), dp(10), dp(10)]
                 spacing: dp(5)
+                HoverMDFlatButton:
+                    text: 'Подгрузить теги в папке загрузок'
+#                    on_release: pass

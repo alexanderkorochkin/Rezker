@@ -1,24 +1,24 @@
-import multitasking
+import os
+
+from kivy import Logger
+from plyer import storagepath
+
+from libs.Common.utils import create_dir
 
 
-class Database:
+class DataManager:
+    _user_folder = os.path.join(os.path.normpath(storagepath.get_home_dir()), 'HDRezker')
 
-    path = ''
+    def __init__(self):
+        create_dir(self._user_folder)
 
-    def __init__(self, path):
-        self.path = path
+    def user_folder(self):
+        return self._user_folder
 
-    # Reads data from the database
-    @multitasking.task
-    def readData(self):
-        pass
-
-    # Write data to the database
-    @multitasking.task
-    def writeData(self):
-        pass
-
-    # Returns first item with key = value
-    def find_item(self, key, value):
-        pass
-
+    def user_file(self, *paths):
+        if '.' in paths[-1]:
+            create_dir(os.path.join(self._user_folder, *paths[:-1]))
+            path = os.path.join(self._user_folder, *paths)
+            return path
+        else:
+            Logger.error(f'DataManager: Path: {os.path.join(self._user_folder, *paths)} is not a link to file!')

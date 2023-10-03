@@ -1,4 +1,3 @@
-import copy
 import os
 
 import multitasking
@@ -6,7 +5,8 @@ from kivy import Logger
 from kivy.clock import mainthread, Clock
 from kivy.properties import partial
 from pySmartDL import SmartDL
-from pySmartDL.control_thread import ControlThread
+
+from libs.Common.utils import create_dir, addTags
 
 
 class STATUS:
@@ -27,11 +27,16 @@ class DownloadsModel:
         self.data = []
         self.dictionary = {}
         self.updateTask = Clock.schedule_interval(self.logic, 1)
-        self.countDownloading = 0
+        self.downloading = []
         self.isClosing = False
+        self.items_deleting = []
+        self.logic_in_process = False
+
+        self.max_active_downloads = self.app.msettings.get('max_active_downloads')
 
     def logic(self, *args):
         if not self.isClosing:
+            self.logic_in_process = True
             if len(self.data) > 0:
                 for download_id in list(self.dictionary.keys()):
                     if self.isAlreadyDownloading(download_id):
@@ -41,7 +46,6 @@ class DownloadsModel:
 
                         if item['doRemove']:
                             self.removeDownload(download_id)
-                            break
                         else:
                             if downloader.get_status() == 'finished':
                                 item['status'] = STATUS.FINISHED
@@ -55,22 +59,23 @@ class DownloadsModel:
                                 item['downloaded_size'] = str(downloader.get_dl_size(human=True))
                             elif downloader.get_status() == 'ready':
                                 item['status'] = STATUS.READY
-                                if self.countDownloading < self.app.msettings.get('MAX_ACTIVE_DOWNLOADS'):
+                                if len(self.downloading) < self.max_active_downloads:
                                     self.startDownload(download_id)
                             elif downloader.get_status() == 'paused':
                                 item['status'] = STATUS.PAUSED
                             elif downloader.get_status() == 'combining':
                                 item['status'] = STATUS.COMBINING
                             else:
-                                Logger.warning(f"Catch error: {item['title']}")
+                                Logger.warning(f"Downloads.Model: Catch error: {item['title']}")
                                 item['status'] = STATUS.ERROR
-
                 Clock.schedule_once(self.notify_observers)
+        self.logic_in_process = False
 
     def startDownload(self, download_id: str, *args):
+        create_dir("\\".join(str(self.getDataItem(download_id)['fullpath']).split("\\")[:-1]))
         self.getDataItemDownloader(download_id).start(blocking=False)
         self.getDataItem(download_id)['status'] = STATUS.DOWNLOADING
-        self.countDownloading += 1
+        self.downloading.append(download_id)
         self.notify_observers()
 
     def ppDownload(self, download_id: str):
@@ -96,14 +101,21 @@ class DownloadsModel:
         if not self.getDataItemDownloader(download_id).isFinished():
             file = self.getDataItem(download_id)['fullpath']
             self.getDataItemDownloader(download_id).stop()
-            Clock.schedule_once(partial(self.clearCache, file), 1)
+            isSeries = True if self.getDataItem(download_id)['type'] != 'movie' else False
+            args = (file, isSeries)
+            Clock.schedule_once(partial(self.clearCache, *args), 2)
+        else:
+            addTags(info=self.getDataItem(download_id).copy())
+        if self.downloading.count(download_id) > 0:
+            self.downloading.remove(download_id)
         self.removeDataItem(download_id)
-        self.countDownloading -= 1
 
     def addDownload(self, link, fullpath, itemBaseInformation: dict, season=None, episode=None):
         downloadInfo = itemBaseInformation.copy()
         if season and episode:
             downloadInfo['download_id'] = f"{downloadInfo['hdrezka_id']}.{season}.{episode}"
+            downloadInfo['season'] = str(season)
+            downloadInfo['episode'] = str(episode)
         else:
             downloadInfo['download_id'] = f"{downloadInfo['hdrezka_id']}"
 
@@ -131,6 +143,12 @@ class DownloadsModel:
         else:
             return False
 
+    def isThereItemWithHdrezkaID(self, hdrezka_id: str):
+        for item in self.data:
+            if item['hdrezka_id'] == hdrezka_id:
+                return True
+        return False
+
     def getDataItemDownloader(self, download_id: str) -> SmartDL:
         return self.getDataItem(download_id)['downloader']
 
@@ -157,14 +175,24 @@ class DownloadsModel:
         return self.dictionary[download_id]
 
     @multitasking.task
-    def clearCache(self, file, *args):
+    def removeSeriesDir(self, directory, *args):
+        try:
+            os.rmdir(directory)
+        except Exception:
+            pass
+
+    @multitasking.task
+    def clearCache(self, file, isSeries=False, *args):
         i = 0
         while os.path.exists(str(file + f'.{i:03}')):
             try:
                 os.remove(str(file + f'.{i:03}'))
             except Exception:
-                print(f"Unable to remove file: {str(file + f'.{i:03}')}.")
+                Logger.warning(f"clearCache: Unable to remove file: {str(file + f'.{i:03}')}.")
             i += 1
+        if isSeries:
+            folder = "\\".join(file.split("\\")[:-1])
+            Clock.schedule_once(partial(self.removeSeriesDir, folder), 1)
 
     def on_close(self):
         self.isClosing = True

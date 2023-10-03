@@ -16,15 +16,13 @@ class LibraryController:
         self.model = LibraryModel()
         self.view = LibraryScreen(controller=self, model=self.model, name=name)
 
-        self.item = None
-
     def get_screen(self):
         return self.view
 
-    def add_item(self, item: dict):
-        item['controller'] = self
-        item['model'] = self.model
-        self.model.add_item(item)
+    def add_item(self, itemBaseInformation: dict):
+        itemBaseInformation['controller'] = self
+        itemBaseInformation['model'] = self.model
+        self.model.add_item(itemBaseInformation)
 
     def open_item(self, link):
         self.app.rootScreen.menuController.search(link)

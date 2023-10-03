@@ -22,7 +22,7 @@
         font_style: 'H6'
         theme_text_color: "Custom"
         text_color: app.theme_cls.primary_color
-        on_release: root.controller.set_screen('library')
+        on_release: app.rootScreen.set_screen('library')
     HoverMDFlatButton:
         id: btn_downloads
         text: 'Загрузки'
@@ -32,7 +32,7 @@
         font_style: 'H6'
         theme_text_color: "Custom"
         text_color: app.theme_cls.accent_color
-        on_release: root.controller.set_screen('downloads')
+        on_release: app.rootScreen.set_screen('downloads')
     MDBoxLayout:
         id: right_box
         MDAnchorLayout:
@@ -98,4 +98,4 @@
                     icon_color: 'white'
                     icon: 'cog-outline'
                     pos_hint: {"center_x": .5, "center_y": .5}
-                    on_release: root.controller.set_screen('settings')
+                    on_release: app.rootScreen.set_screen('settings')

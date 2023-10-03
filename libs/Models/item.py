@@ -42,7 +42,7 @@ class ItemModel:
         self._itemBaseInformation['age'] = ''
         self._itemBaseInformation['duration'] = ''
         self._itemBaseInformation['description'] = ''
-        self._itemBaseInformation['translations'] = {}.copy()
+        self._itemBaseInformation['translations'] = {}
         self._activeTranslation = ''
         self.notify_observers()
 
