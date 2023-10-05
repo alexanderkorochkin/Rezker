@@ -1,16 +1,129 @@
-import ctypes
 import os
 import random
+import subprocess
 import sys
-import threading
 
+import bs4
 import multitasking
 import requests
+from kivy import Logger
+from kivy.animation import Animation
+from kivy.clock import mainthread
+from kivy.metrics import dp
+from kivy.properties import partial
+from kivy.uix.recycleview import RecycleView, RecycleLayoutManagerBehavior
 from kivy.utils import platform
+from kivymd.uix.anchorlayout import MDAnchorLayout
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.card import MDCard
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.spinner import MDSpinner
 from mutagen.mp4 import MP4, MP4Cover
 from plyer import filechooser
 
 from libs.hdrezkalib.hdrezka import HdRezkaApi
+
+
+class Spinner:
+
+    def __init__(self, app):
+        self.app = app
+        self.screen = None
+        self.spinner_anim = None
+
+        self.spinner_main = MDSpinner(
+            size_hint=(None, None),
+            size=(dp(30), dp(30)),
+            pos_hint={'center_x': .5, 'center_y': .5},
+            active=True
+        )
+        self.label = MDFlatButton(text='', disabled=True, pos_hint={'center_x': .5, 'center_y': .5})
+        self.box = MDCard(orientation='vertical', radius=[8], size_hint=(None, None), size=(dp(90), dp(90)), padding=[dp(5), dp(5), dp(5), dp(5)])
+        self.content = MDAnchorLayout(md_bg_color=[0, 0, 0, 0.4], anchor_x='center', anchor_y='center')
+
+        self.box.add_widget(self.spinner_main)
+        self.box.add_widget(self.label)
+
+        self.content.add_widget(self.box)
+
+    @mainthread
+    def start(self, screen: MDScreen, text: str = 'Загрузка'):
+        self.label.text = text
+        self.screen = screen
+        self.content.opacity = 0
+        self.screen.add_widget(self.content)
+        self.spinner_anim = Animation(opacity=1, d=0.3)
+        self.spinner_anim.start(self.content)
+
+    def removeSpinner(self, *args):
+        args[0].remove_widget(self.content)
+
+    @mainthread
+    def stop(self):
+        self.spinner_anim = Animation(opacity=0, d=0.3)
+        self.spinner_anim.bind(on_complete=partial(self.removeSpinner, self.screen))
+        self.spinner_anim.start(self.content)
+
+
+@multitasking.task
+def open_in_explorer(path: str, mode, last_path=None):
+    if os.path.exists(path):
+        if 'open' in mode:
+            subprocess.Popen(rf'explorer /open,"{path}"')
+        elif 'select' in mode:
+            subprocess.Popen(rf'explorer /select,"{path}"')
+    else:
+        if os.path.exists(path + '.000'):
+            path = path + '.000'
+            subprocess.Popen(rf'explorer /select,"{path}"')
+        else:
+            new_path = '\\'.join(path.split('\\')[:-1:])
+            if last_path == new_path:
+                Logger.warning(f'Downloads.Controller: Path ({last_path}) not exists!')
+                return
+            open_in_explorer(new_path, 'open', path)
+
+
+def remove_not_valid_chars(value, chars):
+    for c in chars:
+        value = value.replace(c, '.')
+    return value
+
+
+def getItemDataFromSoupTag(tag: bs4.element.Tag):
+    url = tag["data-url"]
+
+    parser = HdRezkaApi(tag)
+    try:
+        sub_type = url.split('/')[-3]
+    except Exception:
+        sub_type = ''
+
+    if sub_type == 'animation':
+        if str(parser.type) == 'movie':
+            sub_type = 'Мультфильмы (аниме)'
+        else:
+            sub_type = 'Мультсериалы (аниме)'
+    elif sub_type == 'films':
+        sub_type = 'Фильмы'
+    elif sub_type == 'series':
+        sub_type = 'Сериалы'
+    elif sub_type == 'cartoons':
+        if str(parser.type) == 'movie':
+            sub_type = 'Мультфильмы'
+        else:
+            sub_type = 'Мультсериалы'
+
+    return {
+        'url': url,
+        'hdrezka_id': parser.id,
+        'thumbnail': parser.thumbnail,
+        'title': parser.title,
+        'sub_type': sub_type,
+        'type': str(parser.type),
+        'summary_info': parser.summary_info
+    }
 
 
 def getItemDataFromURL(url):
@@ -51,6 +164,7 @@ def getItemDataFromURL(url):
         'duration': item.duration,
         'description': item.description,
         'translations': item.translators,
+        'summary_info': item.summary_info
     }
 
 

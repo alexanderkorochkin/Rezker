@@ -1,45 +1,81 @@
 #:import Factory kivy.factory.Factory
 #:import OpacityScrollEffectSmooth libs.effects.opacityscrollsmooth
 #:import Window kivy.core.window.Window
+#:import truncate_string libs.Views.common.truncate_string
 
 
 <LibraryItem>:
     orientation: 'vertical'
+    spacing: dp(5)
     size_hint: None, None
     width: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)
-    height: self.width * 1.5 + dp(30)
-    HoverMDCardButton:
-        id: card
-        radius: [dp(8)]
-        orientation: 'vertical'
+    height: self.width * 1.5 + dp(60)
+    MDBoxLayout:
         size_hint: None, None
         width: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)
         height: self.width * 1.5
-        on_release: root.open_item()
-        MDAnchorLayout:
-            anchor_y: 'bottom'
-            FitImage:
-                id: image
-                radius: [8, 8, 8, 8]
-                source: root.thumbnail
+        HoverMDCardButton:
+            id: card
+            radius: [dp(8)]
+            orientation: 'vertical'
+            size_hint: None, None
+            width: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)
+            height: self.width * 1.5
+            on_release: root.controller.openItem(root.url)
+            MDRelativeLayout:
+                MDAnchorLayout:
+                    anchor_y: 'bottom'
+                    FitImage:
+                        id: image
+                        radius: [8, 8, 8, 8]
+                        source: root.thumbnail
+                MDAnchorLayout:
+                    anchor_x: 'right'
+                    padding: [dp(5), 0, dp(5), 0]
+                    MDAnchorLayout:
+                        anchor_y: 'top'
+                        padding: [0, dp(5), 0, dp(5)]
+                        size_hint_x: None
+                        width: sub_type_card.width
+                        MDCard:
+                            id: sub_type_card
+                            md_bg_color: app.get_type_color(root.sub_type)
+                            size_hint: None, None
+                            height: dp(20)
+                            width: sub_type.texture_size[0] + dp(20)
+                            adaptive_width: True
+                            radius: 8
+                        MDLabel:
+                            id: sub_type
+                            font_size: 12
+                            font_name: 'assets/fonts/Roboto-Medium.ttf'
+                            text: truncate_string(root.sub_type, 35)
+                            size_hint: None, None
+                            height: dp(20)
+                            text_size: None, None
+    MDAnchorLayout:
+        anchor_y: "top"
+        MDBoxLayout:
+            orientation: 'vertical'
+            spacing: dp(2)
+            adaptive_height: True
             MDLabel:
-                canvas.before:
-                    Color:
-                        rgba: [0, 0, 0, 0.8]
-                    RoundedRectangle:
-                        pos: self.pos
-                        size: self.size
-                        radius: [dp(8)]
-                md_bg_color: [0, 0, 0, 0.0]
-                padding: [dp(10), dp(10), dp(10), dp(10)]
-                font_style: 'Body2'
-                text: root.title
-                adaptive_height: True
-    MDRelativeLayout:
-        MDLabel:
-            padding: [dp(10), dp(5), dp(5), dp(10)]
-            font_style: 'Caption'
-            text: root.type + ', ' + root.date + ', ' + root.genre
+                id: title
+                font_size: 14
+                font_name: 'assets/fonts/Roboto-Medium.ttf'
+                text: truncate_string(root.title, 40)
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: None, None
+            MDLabel:
+                id: summary_info
+                font_style: 'Overline'
+                theme_text_color: "Custom"
+                text_color: app.theme_cls.accent_color
+                text: truncate_string(root.summary_info, 35)
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: None, None
 
 <RVLibraryItems>:
     id: recycle_root
@@ -49,22 +85,25 @@
     effect_cls: Factory.DampedScrollEffect
     scroll_wheel_distance: dp(30)
     smooth_scroll_end: 20
+    bar_inactive_color: [0, 0, 0, 0]
     MDRecycleGridLayout:
-        padding: [0, dp(3), 0, 0]
+        id: recycle_layout
+        padding: [dp(10), dp(3), 0, dp(50)]
         size_hint_y: None
         height: self.minimum_height
         spacing: dp(10)
         cols: app.COLS_LIBRARY
-        default_size: None, (((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)) * 1.5 + dp(30)
+        default_size: None, (((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)) * 1.5 + dp(60)
 
 <LibraryScreen>:
     MDRelativeLayout:
         MDBoxLayout:
             id: library_screen_box
-            padding: [dp(10), 0, 0, dp(10)]
+            padding: [0, 0, 0, dp(10)]
         MDFlatButton:
             id: library_empty_indicator
             text: 'Библиотека пуста :('
+            disabled: True if self.text == '' else False
             theme_text_color: "Custom"
             text_color: app.theme_cls.accent_color
             pos_hint: {"center_x": .5, "center_y": .5}

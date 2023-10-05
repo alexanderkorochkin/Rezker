@@ -13,7 +13,7 @@ class ItemController:
         self.app = app
         self.model = ItemModel()
         self.view = ItemScreen(controller=self, model=self.model, name=name)
-        self.item = None
+        self.last_item = None
 
     def get_screen(self):
         return self.view
@@ -26,8 +26,12 @@ class ItemController:
 
     @multitasking.task
     def PrepareData(self, url, itemBaseInformation: dict = None):
-        self.model.clearData()
+        if self.model.itemBaseInformation != {}:
+            if url != self.model.itemBaseInformation['url']:
+                self.model.clearData()
         if itemBaseInformation is None:
             itemBaseInformation = getItemDataFromURL(url)
         if itemBaseInformation:
             self.model.itemBaseInformation = itemBaseInformation.copy()
+        self.last_item = url
+

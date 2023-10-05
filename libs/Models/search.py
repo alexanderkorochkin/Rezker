@@ -12,20 +12,17 @@ class SearchModel:
     def data(self):
         return self._data
 
-    @data.setter
-    def data(self, value: list):
-        self._data = value
-        self.notify_observers()
-
-    def add_item(self, itemBaseInformation: dict, controller, model):
-        itemBaseInformation['controller'] = controller
-        itemBaseInformation['model'] = model
-        self._data.append(itemBaseInformation.copy())
-        self.notify_observers()
+    def add_items(self, itemsBaseInformation: list, controller, model):
+        for itemBaseInformation in itemsBaseInformation:
+            itemBaseInformation['controller'] = controller
+            itemBaseInformation['model'] = model
+            self._data.append(itemBaseInformation.copy())
+        self.notify_observers(len(self._data))
 
     def clear_items(self):
-        self._data.clear()
-        self.notify_observers()
+        if self._data:
+            self._data.clear()
+            self.notify_observers(0)
 
     def add_observer(self, observer):
         self._observers.append(observer)
@@ -34,6 +31,6 @@ class SearchModel:
         self._observers.remove(observer)
 
     @mainthread
-    def notify_observers(self):
+    def notify_observers(self, new_len):
         for x in self._observers:
-            x.model_is_changed()
+            x.model_is_changed(new_len)

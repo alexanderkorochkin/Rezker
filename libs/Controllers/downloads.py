@@ -6,15 +6,10 @@ from kivy import Logger
 from kivy.core.clipboard import Clipboard
 from pySmartDL import SmartDL
 
+from libs.Common.utils import remove_not_valid_chars
 from libs.Models.downloads import DownloadsModel
 from libs.Views.downloads import DownloadsScreen
 from libs.hdrezkalib.hdrezka import HdRezkaApi
-
-
-def remove_not_valid(value, chars):
-    for c in chars:
-        value = value.replace(c, '.')
-    return value
 
 
 class DownloadsController:
@@ -32,24 +27,6 @@ class DownloadsController:
 
     def on_close(self):
         self.model.on_close()
-
-    @multitasking.task
-    def openExplorer(self, path: str, mode, last_path=None):
-        if os.path.exists(path):
-            if 'open' in mode:
-                subprocess.Popen(rf'explorer /open,"{path}"')
-            elif 'select' in mode:
-                subprocess.Popen(rf'explorer /select,"{path}"')
-        else:
-            if os.path.exists(path + '.000'):
-                path = path + '.000'
-                subprocess.Popen(rf'explorer /select,"{path}"')
-            else:
-                new_path = '\\'.join(path.split('\\')[:-1:])
-                if last_path == new_path:
-                    Logger.warning(f'Downloads.Controller: Path ({last_path}) not exists!')
-                    return
-                self.openExplorer(new_path, 'open', path)
 
     @multitasking.task
     def ppDownload(self, download_id: str):
@@ -70,7 +47,7 @@ class DownloadsController:
                 link = stream(list(stream.videos.keys())[-1])  # Quality = -1 - MAX
                 title = item.title + f" ({item.date.split(' ')[-2]})"
                 path = os.path.abspath(self.app.msettings.get('downloads_destination'))
-                normalName = remove_not_valid(title, '\/:*?"<>|').replace(' .', '.')
+                normalName = remove_not_valid_chars(title, '\/:*?"<>|').replace(' .', '.')
                 file_extension = link.split('.')[-1]
                 fullpath = os.path.join(path, normalName + f'.{file_extension}')
                 self.model.addDownload(link, fullpath, itemBaseInformation.copy())
@@ -84,7 +61,7 @@ class DownloadsController:
                         link = stream(list(stream.videos.keys())[-1])  # Quality = -1 - MAX
                         title = item.title + f" ({item.date.split(' ')[-2]})"
                         path = os.path.abspath(self.app.msettings.get('downloads_destination'))
-                        normalName = remove_not_valid(title, '\/:*?"<>|').replace(' .', '.')
+                        normalName = remove_not_valid_chars(title, '\/:*?"<>|').replace(' .', '.')
                         clearName = normalName
                         file_extension = link.split('.')[-1]
                         normalName = normalName + f' [S{season}E{episode}]'

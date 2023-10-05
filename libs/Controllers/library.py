@@ -24,5 +24,5 @@ class LibraryController:
         itemBaseInformation['model'] = self.model
         self.model.add_item(itemBaseInformation)
 
-    def open_item(self, link):
-        self.app.rootScreen.menuController.search(link)
+    def openItem(self, link):
+        self.app.rootScreen.openItem(link)

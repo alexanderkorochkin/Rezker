@@ -13,6 +13,13 @@
         pos_hint: {"center_x": .5, "center_y": .5}
         ripple_alpha: 0.
         on_release: root.controller.screen_back()
+    HoverMDIconButton:
+        id: btn_screen_next
+        disabled: True
+        icon: 'arrow-right'
+        pos_hint: {"center_x": .5, "center_y": .5}
+        ripple_alpha: 0.
+        on_release: root.controller.screen_next()
     HoverMDFlatButton:
         id: btn_library
         text: 'Библиотека'

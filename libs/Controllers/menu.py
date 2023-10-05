@@ -37,15 +37,25 @@ class MenuController:
 
     @multitasking.task
     def search(self, request):
-        if request == 'test':
-            self.app.rootScreen.screens['library']['controller'].add_item(getItemDataFromURL(self.app.provider('https://hdrezkawer.org/films/fiction/2259-interstellar-2014.html')))
-        else:
-            self.view.set_cursor_to_start()
+        self.view.set_cursor_to_start()
+        if request:
             if validators.url(request):
                 self.app.rootScreen.openItem(request)
             else:
                 self.app.rootScreen.openSearch(request)
 
-    def screen_back(self):
-        self.app.rootScreen.set_screen(self.model.last_screen, no_last=True)
+    def screen_next(self):
+        next_screen, request = self.model.to_next_screen()
+        if request:
+            self.view.set_input_text(str(request))
+        else:
+            self.view.set_input_text('')
+        self.app.rootScreen.set_screen(next_screen, request, simple=True)
 
+    def screen_back(self):
+        back_screen, request = self.model.to_back_screen()
+        if request:
+            self.view.set_input_text(str(request))
+        else:
+            self.view.set_input_text('')
+        self.app.rootScreen.set_screen(back_screen, request, simple=True)

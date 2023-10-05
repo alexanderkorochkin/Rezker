@@ -89,7 +89,7 @@
                         theme_icon_color: "Custom"
                         icon_color: app.theme_cls.accent_color
                         icon: 'folder-open'
-                        on_release: root.controller.openExplorer(root.fullpath, mode='select')
+                        on_release: app.open_in_explorer(root.fullpath, mode='select')
                     MDIconButton:
                         id: btn_remove
                         ripple_alpha: 0.

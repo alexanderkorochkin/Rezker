@@ -9,6 +9,7 @@ from kivymd.app import MDApp
 from plyer import storagepath
 
 from libs.Common.database import DataManager
+from libs.Common.utils import open_in_explorer, Spinner
 from libs.Controllers.settings import SettingsController
 from libs.Views.common import LDialogEnterString
 from libs.rootScreen import RootScreen
@@ -32,16 +33,25 @@ class RezkerApp(MDApp):
         self.title = "Rezker"
         self.rootScreen = None
 
+        self.spinner = Spinner(self)
+
         self.dialogEnterString = LDialogEnterString(app=self)
 
         self.msettings = SettingsController(app=self, name='settings')
         self.settingsScreen = self.msettings.get_screen()
+
+    def get_type_color(self, sub_type):
+        return '#696969' if 'аниме' in sub_type.lower() else '#216d2b' if 'мульт' in sub_type.lower() else '#df565a' if 'сериал' in sub_type.lower() else '#00a0b0'
 
     def provider(self, url: str = None):
         if url is not None:
             return url.replace('https://hdrezkawer.org', self.msettings.get('provider'))
         else:
             return self.msettings.get('provider')
+
+    @staticmethod
+    def open_in_explorer(path: str, mode):
+        open_in_explorer(path, mode)
 
     @staticmethod
     def copy(link: str):
@@ -57,7 +67,7 @@ class RezkerApp(MDApp):
         elif size[0] < 1300:
             self.COLS_LIBRARY = 5
         else:
-            self.COLS_LIBRARY = 7
+            self.COLS_LIBRARY = 8
 
     def on_stop(self):
         self.rootScreen.downloadsController.on_close()

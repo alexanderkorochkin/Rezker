@@ -1,11 +1,16 @@
 import os
 
-from kivy.clock import mainthread
+from kivy.animation import Animation
+from kivy.clock import mainthread, Clock
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
+from kivy.metrics import dp
+from kivy.properties import ObjectProperty, partial
 from kivy.uix.screenmanager import NoTransition
+from kivymd.uix.anchorlayout import MDAnchorLayout
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
+from kivymd.uix.spinner import MDSpinner
 
 from libs.Controllers.downloads import DownloadsController
 from libs.Controllers.item import ItemController
@@ -79,24 +84,39 @@ class RootScreen(MDScreen):
         self.ids.rootBox.add_widget(self.screenManager)
 
     @mainthread
-    def set_screen(self, screen_name, no_last=False):
-        if no_last:
-            self.menuController.model.last_screen = ''
-        else:
-            self.menuController.model.last_screen = self.screenManager.current
+    def set_screen(self, screen_name, request=None, simple=False, *args):
+        self.menuController.view.cancel_input_selection()
+        if request and simple:
+            if screen_name == 'search':
+                self.openSearch(request, silent=simple)
+            elif screen_name == 'item':
+                self.openItem(request, silent=simple)
         self.screenManager.transition = NoTransition()
         self.screenManager.current = screen_name
-        self.menuController.model.current_screen = screen_name
+        if not simple:
+            self.menuController.model.set_screen(screen_name, request)
 
-    def openSearch(self, request):
-        self.set_screen('search')
-        self.searchScreen.recycleList.scroll_y = 1
-        self.searchController.Search(request)
+    def openSearch(self, request, silent=False):
+        self.menuController.view.set_input_text(request)
+        if request != self.searchController.last_request:
+            self.searchController.model.clear_items()
+            self.searchScreen.recycleList.scroll_y = 1
+            self.searchController.Search(request)
+        if silent:
+            Clock.schedule_once(partial(self.set_screen, 'search', None, True), 0)
+        else:
+            Clock.schedule_once(partial(self.set_screen, 'search', request, False), 0)
 
-    def openItem(self, url, itemBaseInformation: dict = None):
-        self.set_screen('item')
-        self.itemScreen.ids.scroll.scroll_y = 1
-        self.itemController.PrepareData(url, itemBaseInformation)
+    def openItem(self, url, itemBaseInformation: dict = None, silent=False):
+        self.menuController.view.set_input_text(url)
+        self.menuController.view.cancel_input_selection()
+        if url != self.itemController.last_item:
+            self.itemScreen.ids.scroll.scroll_y = 1
+            self.itemController.PrepareData(url, itemBaseInformation)
+        if silent:
+            Clock.schedule_once(partial(self.set_screen, 'item', None, True), 0)
+        else:
+            Clock.schedule_once(partial(self.set_screen, 'item', url, False), 0)
 
 
 Builder.load_file(os.path.join(os.path.dirname(__file__), "rootScreen.kv"))

@@ -110,8 +110,8 @@ class DownloadsModel:
             self.downloading.remove(download_id)
         self.removeDataItem(download_id)
 
-    def addDownload(self, link, fullpath, itemBaseInformation: dict, season=None, episode=None):
-        downloadInfo = itemBaseInformation.copy()
+    def addDownload(self, link, fullpath, downloadBaseInformation: dict, season=None, episode=None):
+        downloadInfo = downloadBaseInformation.copy()
         if season and episode:
             downloadInfo['download_id'] = f"{downloadInfo['hdrezka_id']}.{season}.{episode}"
             downloadInfo['season'] = str(season)

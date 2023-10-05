@@ -1,3 +1,4 @@
+import bs4.element
 import requests
 from bs4 import BeautifulSoup
 import base64
@@ -18,9 +19,17 @@ class HdRezkaApi:
 	__version__ = 6.1
 
 	def __init__(self, url):
-		self.HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
-		self.url = url
-		self.site = url.split('//')[-1].split('/')[0]
+		if type(url) == bs4.element.Tag:
+			self.tagMode = True
+			self.HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
+			self.url = url["data-url"]
+			self.tag: bs4.element.Tag = url
+			self.site = self.url.split('//')[-1].split('/')[0]
+		else:
+			self.tagMode = False
+			self.HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
+			self.url = url
+			self.site = url.split('//')[-1].split('/')[0]
 
 	@cached_property
 	def page(self):
@@ -32,10 +41,14 @@ class HdRezkaApi:
 
 	@cached_property
 	def id(self):
+		if self.tagMode:
+			return self.tag['data-id']
 		return self.soup.find(id="post_id").attrs['value']
 
 	@cached_property
 	def title(self):
+		if self.tagMode:
+			return self.tag.find("div", {"class": "b-content__inline_item-cover"}).find("img").attrs["alt"]
 		return self.soup.find(class_="b-post__title").get_text().strip()
 
 	@cached_property
@@ -46,12 +59,15 @@ class HdRezkaApi:
 			out = ''
 		return out
 
-	def findInfoTable(self, request):
+	def findInfoTable(self, request, text_only=True):
 		table = self.soup.find("table", {"class": "b-post__info"})
 		for row in table.findAll("tr"):
 			cells = row.findAll("td")
 			if request in str(cells[0]):
-				return BeautifulSoup(str(cells[1]), 'html.parser').get_text()
+				if text_only:
+					return BeautifulSoup(str(cells[1]), 'html.parser').get_text()
+				else:
+					return BeautifulSoup(str(cells[1]), 'html.parser')
 		return 'None'
 
 	@cached_property
@@ -80,10 +96,38 @@ class HdRezkaApi:
 
 	@cached_property
 	def thumbnail(self):
+		if self.tagMode:
+			return self.tag.find('img').attrs['src']
 		return self.soup.find(class_="b-sidecover").find('img').attrs['src']
 
 	@cached_property
+	def year(self):
+		if self.tagMode:
+			return self.tag.find("div", {"class": "b-content__inline_item-link"}).find("div").get_text().split(', ')[0]
+		return self.date.split(' ')[-2]
+
+	@cached_property
+	def country(self):
+		if self.tagMode:
+			return self.tag.find("div", {"class": "b-content__inline_item-link"}).find("div").get_text().split(', ')[1]
+		return self.findInfoTable('Страна').split(', ')[0]
+
+	@cached_property
+	def summary_info(self):
+		if self.tagMode:
+			return self.tag.find("div", {"class": "b-content__inline_item-link"}).find("div").get_text()
+		else:
+			summary = [str(self.year), str(self.country), str(self.genre.split(', ')[0])]
+		return ', '.join(summary)
+
+	@cached_property
 	def type(self):
+		if self.tagMode:
+			series = self.tag.find("span", {"class": "info"})
+			if series is None:
+				return HdRezkaMovie()
+			else:
+				return HdRezkaTVSeries()
 		type_str = self.soup.find('meta', property="og:type").attrs['content']
 		if type_str == "video.tv_series":
 			return HdRezkaTVSeries()
@@ -93,10 +137,19 @@ class HdRezkaApi:
 
 	@cached_property
 	def rating(self):
-		wraper = self.soup.find(class_='b-post__rating')
-		rating = wraper.find(class_='num').get_text()
-		votes = wraper.find(class_='votes').get_text().strip("()")
-		return HdRezkaRating(value=float(rating), votes=int(votes))
+		try:
+			wrapper = self.findInfoTable('Рейтинги', text_only=False).findAll("span", {"class": "b-post__info_rates"})[-1]
+			rating = wrapper.find("span", {"class": "bold"}).get_text()
+			votes = wrapper.find("i").get_text()[1:-1].replace(' ', '')
+			return HdRezkaRating(value=float(rating), votes=int(votes))
+		except Exception:
+			try:
+				wraper = self.soup.find(class_='b-post__rating')
+				rating = wraper.find(class_='num').get_text()
+				votes = wraper.find(class_='votes').get_text().strip("()")
+				return HdRezkaRating(value=float(rating), votes=int(votes))
+			except Exception:
+				return HdRezkaRating(value=float(0), votes=int(0))
 
 	@cached_property
 	def translators(self):

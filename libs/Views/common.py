@@ -29,6 +29,19 @@ from kivymd.uix.textfield import MDTextField
 from libs.Common.utils import keycodes
 
 
+class AdaptiveMDLabel(MDLabel):
+
+    def setTextToFit(self, text):
+        self.text = text
+        m = 1
+        self.font_size = self.height * m
+        self.texture_update()
+        while m > 0.3 and self.texture_size[0] > self.width:
+            m = m - 0.05
+            self.font_size = self.height * m
+            self.texture_update()
+
+
 def truncate_string(string, N, screen_brackets=False, no_space=True):
     out = string
     if len(string) > N:
@@ -518,6 +531,12 @@ class TextInputMod(TextInput):
             pass
         else:
             super().cancel_selection()
+
+    def select_all(self, *args):
+        super(TextInputMod, self).select_all()
+
+    def on_double_tap(self):
+        Clock.schedule_once(self.select_all, 0)
 
     def on_touch_up(self, touch, menu_dismiss=False):
         if menu_dismiss:
