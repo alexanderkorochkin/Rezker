@@ -1,8 +1,8 @@
 import json
 import os
+import sys
 
 import multitasking
-from kivy import Logger
 
 from libs.Models.settings import SettingsModel
 from libs.Views.settings import SettingsScreen
@@ -38,8 +38,12 @@ class SettingsController:
             new_settings = None
 
         try:
-            with open('default_settings.json') as json_file:
-                settings = json.load(json_file)
+            if getattr(sys, 'frozen', False):
+                with open(os.path.join(sys._MEIPASS,'default/default_settings.json')) as json_file:
+                    settings = json.load(json_file)
+            else:
+                with open('default/default_settings.json') as json_file:
+                    settings = json.load(json_file)
         except Exception:
             settings = None
 
@@ -51,13 +55,15 @@ class SettingsController:
                     pass
             self.model._settings_data = settings.copy()
             self.view.constructSettings(settings.copy())
+        else:
+            print('SETTINGS NOT CONSTRUCTED IN CONTROLLER!')
 
     def set(self, key, value):
         if self.checkValue(key, value):
             self.model.set(key, value)
             self.saveSettings()
         else:
-            Logger.warning(f'Settings.Model: Invalid value ({value}) for setting: {key}')
+            print(f'Settings.Model: Invalid value ({value}) for setting: {key}')
 
     def get(self, key):
         return self.model.settings_data[key]["value"]

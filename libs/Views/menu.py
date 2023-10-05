@@ -1,7 +1,7 @@
 import os
 
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, BooleanProperty, ListProperty
+from kivy.properties import ObjectProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 
 

@@ -1,12 +1,11 @@
 import os
 
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty, BooleanProperty
+from kivy.properties import ObjectProperty, StringProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.screen import MDScreen
 from libs.Common.observer import Observer
-from libs.Views.common import HoverMDFlatButton
 
 
 class LibraryItem(MDBoxLayout):

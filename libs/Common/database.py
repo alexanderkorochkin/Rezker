@@ -1,6 +1,5 @@
 import os
 
-from kivy import Logger
 from plyer import storagepath
 
 from libs.Common.utils import create_dir
@@ -21,4 +20,4 @@ class DataManager:
             path = os.path.join(self._user_folder, *paths)
             return path
         else:
-            Logger.error(f'DataManager: Path: {os.path.join(self._user_folder, *paths)} is not a link to file!')
+            print(f'DataManager: Path: {os.path.join(self._user_folder, *paths)} is not a link to file!')

@@ -1,12 +1,10 @@
-import os
-
+from kivy.clock import Clock
 from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
 from kivy.factory import Factory
 from kivy.loader import Loader
 from kivy.properties import NumericProperty, ObjectProperty
 from kivymd.app import MDApp
-from plyer import storagepath
 
 from libs.Common.database import DataManager
 from libs.Common.utils import open_in_explorer, Spinner
@@ -30,7 +28,7 @@ class RezkerApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.database = DataManager()
-        self.title = "Rezker"
+        self.icon = 'res/favicon.ico'
         self.rootScreen = None
 
         self.spinner = Spinner(self)
@@ -39,6 +37,13 @@ class RezkerApp(MDApp):
 
         self.msettings = SettingsController(app=self, name='settings')
         self.settingsScreen = self.msettings.get_screen()
+
+    def updateInfoTitle(self, *args):
+        info = self.rootScreen.downloadsController.model.UpdateInfo
+        if info:
+            self.title = info
+        else:
+            self.title = 'Rezker'
 
     def get_type_color(self, sub_type):
         return '#696969' if 'аниме' in sub_type.lower() else '#216d2b' if 'мульт' in sub_type.lower() else '#df565a' if 'сериал' in sub_type.lower() else '#00a0b0'
@@ -80,6 +85,7 @@ class RezkerApp(MDApp):
         self.PreCache()
 
     def build(self):
+
         Window.bind(size=self.on_resize)
 
         Factory.register('OpacityScrollEffectSmooth', module='libs.effects.opacityscrollsmooth')
@@ -89,6 +95,8 @@ class RezkerApp(MDApp):
         self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
 
         self.rootScreen = RootScreen(app=self)
+
+        Clock.schedule_interval(self.updateInfoTitle, 1)
 
         return self.rootScreen
 

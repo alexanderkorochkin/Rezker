@@ -1,16 +1,11 @@
 import os
 
-from kivy.animation import Animation
 from kivy.clock import mainthread, Clock
 from kivy.lang import Builder
-from kivy.metrics import dp
 from kivy.properties import ObjectProperty, partial
 from kivy.uix.screenmanager import NoTransition
-from kivymd.uix.anchorlayout import MDAnchorLayout
-from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
-from kivymd.uix.spinner import MDSpinner
 
 from libs.Controllers.downloads import DownloadsController
 from libs.Controllers.item import ItemController

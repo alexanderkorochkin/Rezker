@@ -6,19 +6,17 @@ import sys
 import bs4
 import multitasking
 import requests
-from kivy import Logger
 from kivy.animation import Animation
 from kivy.clock import mainthread
 from kivy.metrics import dp
 from kivy.properties import partial
-from kivy.uix.recycleview import RecycleView, RecycleLayoutManagerBehavior
 from kivy.utils import platform
 from kivymd.uix.anchorlayout import MDAnchorLayout
-from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.spinner import MDSpinner
+
 from mutagen.mp4 import MP4, MP4Cover
 from plyer import filechooser
 
@@ -80,7 +78,7 @@ def open_in_explorer(path: str, mode, last_path=None):
         else:
             new_path = '\\'.join(path.split('\\')[:-1:])
             if last_path == new_path:
-                Logger.warning(f'Downloads.Controller: Path ({last_path}) not exists!')
+                path(f'Downloads.Controller: Path ({last_path}) not exists!')
                 return
             open_in_explorer(new_path, 'open', path)
 
@@ -169,7 +167,7 @@ def getItemDataFromURL(url):
 
 
 @multitasking.task
-def addTags(self, info: dict):
+def addTags(app, info: dict):
     print(f"*MUTAGEN: Starting composing tags to file: {info['fullpath']}")
 
     video = MP4(info['fullpath'])
@@ -193,7 +191,7 @@ def addTags(self, info: dict):
         cover_format = MP4Cover.FORMAT_PNG
     else:
         cover_format = MP4Cover.FORMAT_JPEG
-    temp_image_path = self.app.database.user_file(f'cover_temp_{random.randint(0, 999999)}.{extension}')
+    temp_image_path = app.database.user_file(f'cover_temp_{random.randint(0, 999999)}.{extension}')
     f = open(temp_image_path, 'wb')
     f.write(data)
     f.close()

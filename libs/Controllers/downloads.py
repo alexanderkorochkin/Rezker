@@ -1,10 +1,6 @@
 import os
-import subprocess
 
 import multitasking
-from kivy import Logger
-from kivy.core.clipboard import Clipboard
-from pySmartDL import SmartDL
 
 from libs.Common.utils import remove_not_valid_chars
 from libs.Models.downloads import DownloadsModel
@@ -44,7 +40,7 @@ class DownloadsController:
         if item.type == 'movie':
             try:
                 stream = item.getStream(translation=str(translation))
-                link = stream(list(stream.videos.keys())[-1])  # Quality = -1 - MAX
+                link = stream(list(stream.videos.keys())[self.app.msettings.get('debug_quality')])  # Quality = -1 - MAX
                 title = item.title + f" ({item.date.split(' ')[-2]})"
                 path = os.path.abspath(self.app.msettings.get('downloads_destination'))
                 normalName = remove_not_valid_chars(title, '\/:*?"<>|').replace(' .', '.')
@@ -52,13 +48,13 @@ class DownloadsController:
                 fullpath = os.path.join(path, normalName + f'.{file_extension}')
                 self.model.addDownload(link, fullpath, itemBaseInformation.copy())
             except Exception:
-                Logger.warning(f"Downloads.Controller: Error while trying to get info of film: {itemBaseInformation['title']}")
+                print(f"Downloads.Controller: Error while trying to get info of film: {itemBaseInformation['title']}")
         else:
             for season in list(item.seriesInfo[str(translation)]['seasons'].keys()):
                 for episode in item.seriesInfo[str(translation)]['episodes'][season]:
                     try:
                         stream = item.getStream(str(season), str(episode), str(translation))
-                        link = stream(list(stream.videos.keys())[-1])  # Quality = -1 - MAX
+                        link = stream(list(stream.videos.keys())[self.app.msettings.get('debug_quality')])  # Quality = -1 - MAX
                         title = item.title + f" ({item.date.split(' ')[-2]})"
                         path = os.path.abspath(self.app.msettings.get('downloads_destination'))
                         normalName = remove_not_valid_chars(title, '\/:*?"<>|').replace(' .', '.')
@@ -69,4 +65,4 @@ class DownloadsController:
                         fullpath = os.path.join(path, normalName + f'.{file_extension}')
                         self.model.addDownload(link, fullpath, itemBaseInformation.copy(), season=season, episode=episode)
                     except Exception:
-                        Logger.warning(f"Downloads.Controller: Error while trying to get info of series: {itemBaseInformation['title']}, S{season}E{episode}")
+                        print(f"Downloads.Controller: Error while trying to get info of series: {itemBaseInformation['title']}, S{season}E{episode}")

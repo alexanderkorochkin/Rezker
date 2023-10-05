@@ -1,10 +1,3 @@
-import json
-import os
-
-import multitasking
-from kivy import Logger
-
-
 class SettingsModel:
 
     def __init__(self):

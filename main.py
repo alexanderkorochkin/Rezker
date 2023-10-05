@@ -1,21 +1,16 @@
-import os, sys
+import os
+import sys
+
 from kivy.resources import resource_add_path, resource_find
+
+if hasattr(sys, '_MEIPASS'):
+    resource_add_path(os.path.join(sys._MEIPASS))
+if hasattr(sys, '_MEIPASS') or sys.__stdout__ is None or sys.__stderr__ is None:
+    os.environ['KIVY_NO_CONSOLELOG'] = '1'
+    os.environ['KIVY_LOG_MODE'] = 'PYTHON'
 
 from libs.rezker import rezkerApp
 
 
 if __name__ == '__main__':
-    try:
-        if hasattr(sys, '_MEIPASS'):
-            resource_add_path(os.path.join(sys._MEIPASS))
-        rezkerApp.run()
-    except Exception as e:
-        print(e)
-        input("Press enter...")
-
-# TODO Открыть папку, скопировать ссылку в загрузках, добавить размер файла и размер скачанного
-# TODO Библиотека
-# TODO Поисковая строка
-# TODO Последние запросы в поисковой строке
-# TODO Реализовать базу данных для библиотеки
-
+    rezkerApp.run()

@@ -1,12 +1,12 @@
 import os
 
 import multitasking
-from kivy import Logger
 from kivy.clock import mainthread, Clock
 from kivy.properties import partial
 from pySmartDL import SmartDL
 
 from libs.Common.utils import create_dir, addTags
+from libs.Views.common import truncate_string
 
 
 class STATUS:
@@ -32,7 +32,7 @@ class DownloadsModel:
         self.items_deleting = []
         self.logic_in_process = False
 
-        self.max_active_downloads = self.app.msettings.get('max_active_downloads')
+        self.max_active_downloads = 1
 
     def logic(self, *args):
         if not self.isClosing:
@@ -48,8 +48,16 @@ class DownloadsModel:
                             self.removeDownload(download_id)
                         else:
                             if downloader.get_status() == 'finished':
-                                item['status'] = STATUS.FINISHED
-                                self.removeDownload(download_id)
+                                if downloader.isSuccessful():
+                                    item['status'] = STATUS.FINISHED
+                                    self.removeDownload(download_id)
+                                else:
+                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
+                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
+                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
+                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
+                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
+                                    item['status'] = STATUS.ERROR
                             elif downloader.get_status() == 'downloading':
                                 item['status'] = STATUS.DOWNLOADING
                                 item['progress'] = round(downloader.get_progress() * 100, 2)
@@ -66,7 +74,7 @@ class DownloadsModel:
                             elif downloader.get_status() == 'combining':
                                 item['status'] = STATUS.COMBINING
                             else:
-                                Logger.warning(f"Downloads.Model: Catch error: {item['title']}")
+                                print(f"Downloads.Model: Catch error: {item['title']}")
                                 item['status'] = STATUS.ERROR
                 Clock.schedule_once(self.notify_observers)
         self.logic_in_process = False
@@ -77,6 +85,18 @@ class DownloadsModel:
         self.getDataItem(download_id)['status'] = STATUS.DOWNLOADING
         self.downloading.append(download_id)
         self.notify_observers()
+
+    @property
+    def UpdateInfo(self):
+        active = len(self.downloading)
+        if active == 0:
+            return None
+        else:
+            item = self.getDataItem(self.downloading[0])
+            if item['type'] == 'movie':
+                return f"{item['status']}: {truncate_string(item['title'], 30)} ({item['year']}) -> {item['downloaded_size']}/{item['total_size']} [{item['progress']}%], {item['remaining_time']}"
+            else:
+                return f"{item['status']}: {truncate_string(item['title'], 30)} ({item['year']}) [S{item['season']}E{item['episode']}] -> {item['downloaded_size']}/{item['total_size']} [{item['progress']}%], {item['remaining_time']}"
 
     def ppDownload(self, download_id: str):
         if self.getDataItem(download_id)['status'] == STATUS.PAUSED:
@@ -105,7 +125,7 @@ class DownloadsModel:
             args = (file, isSeries)
             Clock.schedule_once(partial(self.clearCache, *args), 2)
         else:
-            addTags(info=self.getDataItem(download_id).copy())
+            addTags(app=self.app, info=self.getDataItem(download_id).copy())
         if self.downloading.count(download_id) > 0:
             self.downloading.remove(download_id)
         self.removeDataItem(download_id)
@@ -132,7 +152,7 @@ class DownloadsModel:
         downloadInfo['remaining_time'] = '∞'
         downloadInfo['total_size'] = '0'
         downloadInfo['downloaded_size'] = '0'
-        downloadInfo['downloader'] = SmartDL(link, fullpath)
+        downloadInfo['downloader'] = SmartDL([link, link, link, link], fullpath)
         downloadInfo['doRemove'] = False
 
         self.addDataItem(downloadInfo.copy(), downloadInfo['download_id'])
@@ -188,7 +208,7 @@ class DownloadsModel:
             try:
                 os.remove(str(file + f'.{i:03}'))
             except Exception:
-                Logger.warning(f"clearCache: Unable to remove file: {str(file + f'.{i:03}')}.")
+                print(f"clearCache: Unable to remove file: {str(file + f'.{i:03}')}.")
             i += 1
         if isSeries:
             folder = "\\".join(file.split("\\")[:-1])

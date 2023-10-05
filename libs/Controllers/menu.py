@@ -1,23 +1,6 @@
-import json
-import time
-import urllib.request
-from collections import defaultdict
-from urllib.parse import quote
-
 import multitasking
-import phantomjs
-from parsel import Selector
-
-from httpx import Client
-
-import requests
 import validators
-from bs4 import BeautifulSoup
-from kivy.uix.screenmanager import NoTransition
-from requests_html import HTMLSession
-from selenium import webdriver
 
-from libs.Common.utils import getItemDataFromURL
 from libs.Models.menu import MenuModel
 from libs.Views.menu import MenuView
 

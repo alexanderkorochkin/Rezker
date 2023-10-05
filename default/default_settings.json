@@ -17,18 +17,18 @@
         "sub_title": "library_destination",
         "value": "C:\\HDRezker"
     },
-    "max_active_downloads": {
-        "type": "SNumeric",
-        "validate_type": "int",
-        "title": "Max number of active downloads",
-        "sub_title": "max_active_downloads",
-        "value": 1
-    },
     "max_number_search_results": {
         "type": "SNumeric",
         "validate_type": "int",
         "title": "Max number of search results displayed",
         "sub_title": "max_number_search_results",
-        "value": 5
+        "value": 10
+    },
+    "debug_quality": {
+        "type": "SNumeric",
+        "validate_type": "int",
+        "title": "QUALITY: -1 - MAX, 0 - MIN",
+        "sub_title": "debug_quality",
+        "value": -1
     }
 }

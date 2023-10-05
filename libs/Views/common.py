@@ -1,5 +1,4 @@
 import os
-import sys
 from typing import Union
 
 from kivy.animation import Animation

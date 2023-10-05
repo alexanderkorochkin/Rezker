@@ -25,6 +25,10 @@ class ItemController:
         self.app.rootScreen.downloadsController.addDownload(self.model.itemBaseInformation, translation)
 
     @multitasking.task
+    def RetryDownload(self, url, translation):
+        self.app.rootScreen.downloadsController.addDownload(getItemDataFromURL(url).copy(), translation)
+
+    @multitasking.task
     def PrepareData(self, url, itemBaseInformation: dict = None):
         if self.model.itemBaseInformation != {}:
             if url != self.model.itemBaseInformation['url']:

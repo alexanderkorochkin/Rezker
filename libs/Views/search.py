@@ -3,11 +3,8 @@ import os
 
 from kivy.animation import Animation
 from kivy.clock import mainthread, Clock
-from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.metrics import dp
-from kivy.properties import ObjectProperty, StringProperty, partial
-from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.properties import ObjectProperty, partial
 from kivymd.uix.screen import MDScreen
 from libs.Common.observer import Observer
 from libs.Views.common import HoverMDFlatButton
@@ -57,12 +54,17 @@ class SearchScreen(MDScreen, Observer):
 
         if vp_height <= sv_height:
             self.next_results_btn.make_visible(self)
+            return True
+        return False
 
     def checkScroll(self, *args):
         if args[1] <= 0.05:
             self.next_results_btn.make_visible(self)
         else:
-            self.next_results_btn.make_invisible(self)
+            if self.checkHeight():
+                pass
+            else:
+                self.next_results_btn.make_invisible(self)
 
     @mainthread
     def EnableNextResultsButton(self):
@@ -78,7 +80,6 @@ class SearchScreen(MDScreen, Observer):
         sv_height = self.recycleList.height
         vp_height = self.recycleList.viewport_size[1]
         self.recycleList.scroll_y = bottom / (vp_height - sv_height)
-        self.checkScroll(*(None, self.recycleList.scroll_y))
 
     @mainthread
     def model_is_changed(self, new_len):

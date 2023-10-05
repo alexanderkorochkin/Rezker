@@ -1,10 +1,3 @@
-from copy import copy
-
-from kivy.animation import Animation
-from kivy.clock import Clock
-from kivy.metrics import dp
-from kivy.uix.widget import Widget
-
 from libs.Models.library import LibraryModel
 from libs.Views.library import LibraryScreen
 
