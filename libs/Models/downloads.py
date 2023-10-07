@@ -1,3 +1,4 @@
+import json
 import os
 
 import multitasking
@@ -51,13 +52,12 @@ class DownloadsModel:
                                 if downloader.isSuccessful():
                                     item['status'] = STATUS.FINISHED
                                     self.removeDownload(download_id)
+                                    self.app.rootScreen.libraryController.addToLibrary(item)
                                 else:
-                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
-                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
-                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
-                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
-                                    print('FUCKFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')
+                                    print(f"ERROR DOWNLOADING: {item['title']}")
                                     item['status'] = STATUS.ERROR
+                                    self.app.rootScreen.itemController.RetryDownload(item['url'], item['translation'])
+                                    self.removeDownload(download_id)
                             elif downloader.get_status() == 'downloading':
                                 item['status'] = STATUS.DOWNLOADING
                                 item['progress'] = round(downloader.get_progress() * 100, 2)
@@ -94,9 +94,9 @@ class DownloadsModel:
         else:
             item = self.getDataItem(self.downloading[0])
             if item['type'] == 'movie':
-                return f"{item['status']}: {truncate_string(item['title'], 30)} ({item['year']}) -> {item['downloaded_size']}/{item['total_size']} [{item['progress']}%], {item['remaining_time']}"
+                return f"{item['status']} ({active}/{len(self.dictionary)}): {truncate_string(item['title'], 30)} ({item['year']}) -> {item['downloaded_size']}/{item['total_size']} [{item['progress']}%], {item['remaining_time']}"
             else:
-                return f"{item['status']}: {truncate_string(item['title'], 30)} ({item['year']}) [S{item['season']}E{item['episode']}] -> {item['downloaded_size']}/{item['total_size']} [{item['progress']}%], {item['remaining_time']}"
+                return f"{item['status']} ({active}/{len(self.dictionary)}): {truncate_string(item['title'], 30)} ({item['year']}) [S{item['season']}E{item['episode']}] -> {item['downloaded_size']}/{item['total_size']} [{item['progress']}%], {item['remaining_time']}"
 
     def ppDownload(self, download_id: str):
         if self.getDataItem(download_id)['status'] == STATUS.PAUSED:
@@ -129,6 +129,9 @@ class DownloadsModel:
         if self.downloading.count(download_id) > 0:
             self.downloading.remove(download_id)
         self.removeDataItem(download_id)
+
+    def addAlreadyDownloaded(self, fullpath):
+        pass
 
     def addDownload(self, link, fullpath, downloadBaseInformation: dict, season=None, episode=None):
         downloadInfo = downloadBaseInformation.copy()

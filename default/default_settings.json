@@ -1,7 +1,7 @@
 {
     "provider": {
         "type": "SString",
-        "title": "Base provider url (ex. https://hdrezkawer.org)",
+        "title": "URL of base provider (ex. https://hdrezkawer.org)",
         "sub_title": "provider",
         "value": "https://hdrezkawer.org"
     },
@@ -11,22 +11,9 @@
         "sub_title": "downloads_destination",
         "value": "C:\\HDRezker"
     },
-    "library_destination": {
-        "type": "SPath",
-        "title": "Library folder",
-        "sub_title": "library_destination",
-        "value": "C:\\HDRezker"
-    },
-    "max_number_search_results": {
-        "type": "SNumeric",
-        "validate_type": "int",
-        "title": "Max number of search results displayed",
-        "sub_title": "max_number_search_results",
-        "value": 10
-    },
     "debug_quality": {
         "type": "SNumeric",
-        "validate_type": "int",
+        "validate_type": "sint",
         "title": "QUALITY: -1 - MAX, 0 - MIN",
         "sub_title": "debug_quality",
         "value": -1

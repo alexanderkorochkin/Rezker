@@ -39,6 +39,7 @@ class DownloadsItem(MDBoxLayout):
     total_size = StringProperty('0')
     downloaded_size = StringProperty('0')
     doRemove = BooleanProperty(False)
+    translation = StringProperty('')
 
     season = StringProperty('')
     episode = StringProperty('')

@@ -40,22 +40,32 @@ class DownloadsController:
         if item.type == 'movie':
             try:
                 stream = item.getStream(translation=str(translation))
-                link = stream(list(stream.videos.keys())[self.app.msettings.get('debug_quality')])  # Quality = -1 - MAX
-                title = item.title + f" ({item.date.split(' ')[-2]})"
+                itemBaseInformation['quality'] = list(stream.videos.keys())[self.app.msettings.get('debug_quality')]
+                itemBaseInformation['translation'] = translation
+                link = stream(itemBaseInformation['quality'])  # Quality = -1 - MAX
+                try:
+                    title = item.title + f" ({item.date.split(' ')[-2]})"
+                except Exception:
+                    title = item.title + f"({itemBaseInformation['year']})"
                 path = os.path.abspath(self.app.msettings.get('downloads_destination'))
                 normalName = remove_not_valid_chars(title, '\/:*?"<>|').replace(' .', '.')
                 file_extension = link.split('.')[-1]
                 fullpath = os.path.join(path, normalName + f'.{file_extension}')
                 self.model.addDownload(link, fullpath, itemBaseInformation.copy())
-            except Exception:
-                print(f"Downloads.Controller: Error while trying to get info of film: {itemBaseInformation['title']}")
+            except Exception as e:
+                print(f"Downloads.Controller: Error while trying to get info of film: {itemBaseInformation['title']} [{e}]")
         else:
             for season in list(item.seriesInfo[str(translation)]['seasons'].keys()):
                 for episode in item.seriesInfo[str(translation)]['episodes'][season]:
                     try:
                         stream = item.getStream(str(season), str(episode), str(translation))
-                        link = stream(list(stream.videos.keys())[self.app.msettings.get('debug_quality')])  # Quality = -1 - MAX
-                        title = item.title + f" ({item.date.split(' ')[-2]})"
+                        itemBaseInformation['quality'] = list(stream.videos.keys())[self.app.msettings.get('debug_quality')]
+                        itemBaseInformation['translation'] = translation
+                        link = stream(itemBaseInformation['quality'])  # Quality = -1 - MAX
+                        try:
+                            title = item.title + f" ({item.date.split(' ')[-2]})"
+                        except Exception:
+                            title = item.title + f"({itemBaseInformation['year']})"
                         path = os.path.abspath(self.app.msettings.get('downloads_destination'))
                         normalName = remove_not_valid_chars(title, '\/:*?"<>|').replace(' .', '.')
                         clearName = normalName

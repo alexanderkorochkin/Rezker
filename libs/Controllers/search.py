@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from kivy.clock import Clock
 from kivy.properties import partial
 
-from libs.Common.utils import getItemDataFromSoupTag
+from libs.Common.utils import getSearchItemFromSoupTag
 from libs.Models.search import SearchModel
 from libs.Views.search import SearchScreen
 
@@ -16,13 +16,14 @@ class SearchController:
     def __init__(self, app, name):
         self.app = app
         self.model = SearchModel()
-        self.view = SearchScreen(controller=self, model=self.model, name=name)
+        self.view = SearchScreen(self.app, controller=self, model=self.model, name=name)
 
         self.active_task_id = None
         self.search_active = False
 
         self.last_request = ''
 
+        self.max_number_search_results = 50
         self.soup = None
         self.request = None
         self.pages = 0
@@ -101,7 +102,7 @@ class SearchController:
             counter = 0
             for item in items:
                 if self.last_count < counter:
-                    if counter <= self.last_count + self.app.msettings.get("max_number_search_results"):
+                    if counter <= self.last_count + self.max_number_search_results:
                         if counter == items_in_page - 1:
                             self.page = min(self.page + 1, self.pages)
                             if self.page != self.pages:
@@ -112,7 +113,7 @@ class SearchController:
                             self.search_active = False
                             return
 
-                        itemBaseInformation = getItemDataFromSoupTag(item)
+                        itemBaseInformation = getSearchItemFromSoupTag(item)
 
                         if task_id != self.active_task_id:
                             self.search_active = False

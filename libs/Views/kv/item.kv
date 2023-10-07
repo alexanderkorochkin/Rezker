@@ -3,7 +3,7 @@
 
 
 <TranslationItem>:
-    on_release: root.controller.chooseTranslation(root.text)
+    on_release: root.controller.chooseTranslation(root.translation_id)
 
 
 <RVTranslationsList>:
@@ -189,6 +189,7 @@
                     default_size_y: dp(100)
                     height: self.texture_size[1] or dp(100)
                 LoaderLabel:
+                    id: translations_label
                     markup: True
                     text: 'Озвучки:' if root.title else ''
                     font_style: 'H5'
@@ -196,17 +197,35 @@
                     default_size_x: dp(100)
                     default_size_y: dp(20)
                     height: self.texture_size[1] or dp(20)
-                    opacity: 1 if root.title != 'None' else 0
-                    padding: [0, dp(5), 0, 0] if root.title != 'None' else [0, 0, 0, 0]
+                    opacity: 0 if root.isLibrary else 1 if root.title != 'None' else 0
+                    padding: [0, -dp(20), 0, 0] if root.isLibrary else [0, dp(5), 0, 0] if root.title != 'None' else [0, 0, 0, 0]
                 MDBoxLayout:
                     id: translations_box
                     orientation: 'horizontal'
-                    adaptive_height: True
-                HoverMDFlatButton:
-                    id: btn_download
-                    text: f'Скачать в озвучке: {root.activeTranslation}' if root.activeTranslation != '' else 'Выберите озвучку'
-                    theme_text_color: "Custom"
-                    text_color: 'white'
-#                    opacity: 1 if root.activeTranslation != '' else 0
-                    disabled: False if root.activeTranslation != '' else True
-                    on_release: root.controller.addDownload(root.activeTranslation)
+                    size_hint_y: None
+                    height: dp(36) if not root.isLibrary else dp(0)
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: btn_download.height
+                    pos: [self.pos[0], 45] if root.isLibrary else [self.pos[0], self.pos[1]]
+                    spacing: dp(10)
+                    HoverMDFlatButton:
+                        id: btn_download
+                        markup: True
+                        text: f'[b]Смотреть' if root.isLibrary else f'Скачать в озвучке: {root.translationText}' if root.translation != '' else 'Выберите озвучку'
+                        theme_text_color: "Custom"
+                        text_color: 'white'
+                        disabled: False if root.isLibrary else False if root.translation != '' else True
+#                        pos: [self.pos[0], 45] if root.isLibrary else [self.pos[0], self.pos[1]]
+                        on_release: root.controller.addDownload(root.translation) if not root.isLibrary else root.controller.playItem()
+                    HoverMDFlatButton:
+                        id: btn_download
+                        markup: True
+                        text: '' if root.isLibrary else f'[b]Уже скачан?[/b]'
+                        theme_text_color: "Custom"
+                        text_color: 'white'
+                        disabled: True if root.isLibrary else False
+                        opacity: 0 if root.isLibrary else 1
+#                        pos: [self.pos[0], 45] if root.isLibrary else [self.pos[0], self.pos[1]]
+                        on_release: root.controller.addLibrary()

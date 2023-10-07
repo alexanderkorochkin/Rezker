@@ -1,7 +1,7 @@
 import os
 
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty
+from kivy.properties import ObjectProperty, StringProperty, BooleanProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.screen import MDScreen
@@ -19,6 +19,8 @@ class LibraryItem(MDBoxLayout):
     type = StringProperty('')
     sub_type = StringProperty('')
     summary_info = StringProperty('')
+    quality = StringProperty('')
+    isLibrary = BooleanProperty(True)
 
 
 class RVLibraryItems(MDRecycleView):

@@ -78,7 +78,7 @@ def open_in_explorer(path: str, mode, last_path=None):
         else:
             new_path = '\\'.join(path.split('\\')[:-1:])
             if last_path == new_path:
-                path(f'Downloads.Controller: Path ({last_path}) not exists!')
+                print(f'Downloads.Controller: Path ({last_path}) not exists!')
                 return
             open_in_explorer(new_path, 'open', path)
 
@@ -89,7 +89,7 @@ def remove_not_valid_chars(value, chars):
     return value
 
 
-def getItemDataFromSoupTag(tag: bs4.element.Tag):
+def getSearchItemFromSoupTag(tag: bs4.element.Tag):
     url = tag["data-url"]
 
     parser = HdRezkaApi(tag)
@@ -120,7 +120,7 @@ def getItemDataFromSoupTag(tag: bs4.element.Tag):
         'title': parser.title,
         'sub_type': sub_type,
         'type': str(parser.type),
-        'summary_info': parser.summary_info
+        'summary_info': parser.summary_info,
     }
 
 
@@ -162,7 +162,7 @@ def getItemDataFromURL(url):
         'duration': item.duration,
         'description': item.description,
         'translations': item.translators,
-        'summary_info': item.summary_info
+        'country': item.country,
     }
 
 
@@ -173,6 +173,7 @@ def addTags(app, info: dict):
     video = MP4(info['fullpath'])
 
     video["\xa9day"] = info['year']
+    video["\xa9cmt"] = info['translation'] + ', ' + info['quality']
     video["\xa9gen"] = info['genre']
     video["purl"] = info['url']
     video["\xa9grp"] = list(info['sub_type'].split(', '))

@@ -6,7 +6,7 @@ class ItemModel:
     def __init__(self):
         self._observers = []
         self._itemBaseInformation = {}
-        self._activeTranslation = ''
+        self._translation = ''
 
     @property
     def itemBaseInformation(self):
@@ -15,17 +15,22 @@ class ItemModel:
     @itemBaseInformation.setter
     def itemBaseInformation(self, data: dict):
         self._itemBaseInformation = data
-        self._itemBaseInformation['year'] = str(self._itemBaseInformation['date'].split(' ')[-2])
+        if self._itemBaseInformation['date'] != 'None':
+            self._itemBaseInformation['year'] = str(self._itemBaseInformation['date'].split(' ')[-2])
+        else:
+            self._itemBaseInformation['year'] = self._itemBaseInformation['url'].split('/')[-1].split('.')[0].split('-')[-1]
+            self._itemBaseInformation['date'] = self._itemBaseInformation['url'].split('/')[-1].split('.')[0].split('-')[-1] + ' год'
+        self._itemBaseInformation['summary_info'] = ', '.join([self._itemBaseInformation['year'], self._itemBaseInformation['country'], self._itemBaseInformation['genre'].split(', ')[0]])
         self.notify_observers('itemBaseInformation')
 
     @property
-    def activeTranslation(self):
-        return self._activeTranslation
+    def translation(self):
+        return self._translation
 
-    @activeTranslation.setter
-    def activeTranslation(self, value):
-        self._activeTranslation = value
-        self.notify_observers('activeTranslation')
+    @translation.setter
+    def translation(self, value):
+        self._translation = value
+        self.notify_observers('translation')
 
     def clearData(self):
         self._itemBaseInformation['url'] = ''
@@ -42,8 +47,9 @@ class ItemModel:
         self._itemBaseInformation['age'] = ''
         self._itemBaseInformation['duration'] = ''
         self._itemBaseInformation['description'] = ''
+        self._itemBaseInformation['isLibrary'] = False
         self._itemBaseInformation['translations'] = {}
-        self._activeTranslation = ''
+        self._translation = ''
         self.notify_observers()
 
     def add_observer(self, observer):

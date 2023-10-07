@@ -11,7 +11,7 @@ from libs.Views.common import HoverMDFlatButton
 class TranslationItem(HoverMDFlatButton):
     controller = ObjectProperty()
     model = ObjectProperty()
-    translation_id = NumericProperty(0)
+    translation_id = StringProperty('')
 
 
 class RVTranslationsList(MDRecycleView):
@@ -44,7 +44,10 @@ class ItemScreen(MDScreen, Observer):
     age = StringProperty('')
     duration = StringProperty('')
     description = StringProperty('')
-    activeTranslation = StringProperty('')
+    translationText = StringProperty('')
+    quality = StringProperty('')
+    translation = StringProperty('')
+    isLibrary = BooleanProperty(False)
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -68,6 +71,12 @@ class ItemScreen(MDScreen, Observer):
             self.age = self.model.itemBaseInformation['age']
             self.duration = self.model.itemBaseInformation['duration']
             self.description = self.model.itemBaseInformation['description']
+            if "isLibrary" in self.model.itemBaseInformation:
+                self.isLibrary = self.model.itemBaseInformation['isLibrary']
+            if "translation" in self.model.itemBaseInformation:
+                self.translation = self.model.itemBaseInformation['translation']
+            if "quality" in self.model.itemBaseInformation:
+                self.quality = self.model.itemBaseInformation['quality']
             if len(list(self.model.itemBaseInformation['translations'].keys())) > 0:
                 if self.translationsList not in self.ids.translations_box.children:
                     self.ids.translations_box.add_widget(self.translationsList)
@@ -77,25 +86,26 @@ class ItemScreen(MDScreen, Observer):
                     temp.append({
                         'controller': self.controller,
                         'model': self.model,
-                        'text': str(translation),
+                        'text': str(translation) if str(translation) != 'HDrezka Studio ' else 'HDrezka Studio (укр.)',
                         'new_bg_color': [1, 1, 1, 0.02],
-                        'translation_id': self.model.itemBaseInformation['translations'][translation]
+                        'translation_id': str(translation)
                     })
                     self.translationsList.data = temp.copy()
-                    self.model.activeTranslation = list(self.model.itemBaseInformation['translations'].keys())[0]
+                    self.model.translation = list(self.model.itemBaseInformation['translations'].keys())[0]
             else:
                 self.ids.translations_box.remove_widget(self.translationsList)
-        if what == 'activeTranslation' or what == 'all':
-            self.activeTranslation = str(self.model.activeTranslation)
+        if what == 'translation' or what == 'all':
+            self.translation = str(self.model.translation)
+            self.translationText = self.translation if self.translation != 'HDrezka Studio ' else 'HDrezka Studio (укр.)'
             self.translationsList.data.clear()
             temp = []
             for translation in list(self.model.itemBaseInformation['translations'].keys()):
                 temp.append({
                     'controller': self.controller,
                     'model': self.model,
-                    'text': str(translation),
-                    'new_bg_color': [1, 1, 1, 0.4] if translation == self.model.activeTranslation else [1, 1, 1, 0.02],
-                    'translation_id': self.model.itemBaseInformation['translations'][translation]
+                    'text': str(translation) if str(translation) != 'HDrezka Studio ' else 'HDrezka Studio (укр.)',
+                    'new_bg_color': [1, 1, 1, 0.4] if translation == self.model.translation else [1, 1, 1, 0.02],
+                    'translation_id': str(translation)
                 })
                 self.translationsList.data = temp.copy()
 

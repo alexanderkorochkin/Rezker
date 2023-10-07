@@ -28,7 +28,7 @@ class RezkerApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.database = DataManager()
-        self.icon = 'res/favicon.ico'
+        self.icon = 'res/icon.ico'
         self.rootScreen = None
 
         self.spinner = Spinner(self)

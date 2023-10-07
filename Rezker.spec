@@ -35,7 +35,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='./res/favicon.ico',
+    icon='./res/icon.ico',
 	hide_console='hide-late',
 )
 coll = COLLECT(

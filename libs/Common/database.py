@@ -11,8 +11,19 @@ class DataManager:
     def __init__(self):
         create_dir(self._user_folder)
 
+    @property
+    def settings_file(self):
+        return self.user_file('settings.json')
+
+    @property
+    def library_file(self):
+        return self.user_file('library.json')
+
     def user_folder(self):
         return self._user_folder
+
+    def thumbnail_cache(self, image: str):
+        return self.user_file(*('thumbnail_cache', image))
 
     def user_file(self, *paths):
         if '.' in paths[-1]:

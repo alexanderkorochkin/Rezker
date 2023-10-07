@@ -24,12 +24,12 @@ class SettingsController:
         normal_data = {}
         for setting_key in list(self.model.settings_data.keys()):
             normal_data[setting_key] = self.model.settings_data[setting_key]['value']
-        with open(self.app.database.user_file('settings.json'), "w") as outfile:
+        with open(self.app.database.settings_file, "w") as outfile:
             json.dump(normal_data, outfile, indent=4, separators=(',', ': '), skipkeys=True)
 
     def constructSettings(self):
-        if os.path.exists(self.app.database.user_file('settings.json')):
-            with open(self.app.database.user_file('settings.json')) as json_file:
+        if os.path.exists(self.app.database.settings_file):
+            with open(self.app.database.settings_file) as json_file:
                 try:
                     new_settings = json.load(json_file)
                 except Exception:

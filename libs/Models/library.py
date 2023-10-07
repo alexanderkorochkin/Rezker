@@ -3,10 +3,11 @@ from kivy.clock import mainthread
 
 class LibraryModel:
 
-    def __init__(self):
+    def __init__(self, app, controller):
+        self.app = app
         self._data = []
         self._observers = []
-        self.controller = None
+        self.controller = controller
 
     @property
     def data(self):
@@ -15,10 +16,14 @@ class LibraryModel:
     @data.setter
     def data(self, value: list):
         self._data = value
+        for item in self._data:
+            item['controller'] = self.controller
+            item['model'] = self
         self.notify_observers()
 
-    def add_item(self, itemBaseInformation: dict):
-        self._data.append(itemBaseInformation.copy())
+    def add_item(self, libraryItem: dict):
+        self._data.append(libraryItem.copy())
+        self.controller.saveLibrary()
         self.notify_observers()
 
     def add_observer(self, observer):
