@@ -15,7 +15,7 @@ class ItemModel:
     @itemBaseInformation.setter
     def itemBaseInformation(self, data: dict):
         self._itemBaseInformation = data
-        if self._itemBaseInformation['date'] != 'None':
+        if self._itemBaseInformation['date'] != 'None' and self._itemBaseInformation['date'] != '':
             self._itemBaseInformation['year'] = str(self._itemBaseInformation['date'].split(' ')[-2])
         else:
             self._itemBaseInformation['year'] = self._itemBaseInformation['url'].split('/')[-1].split('.')[0].split('-')[-1]

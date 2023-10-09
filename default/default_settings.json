@@ -5,10 +5,10 @@
         "sub_title": "provider",
         "value": "https://hdrezkawer.org"
     },
-    "downloads_destination": {
+    "downloads_folder": {
         "type": "SPath",
         "title": "Downloads destination",
-        "sub_title": "downloads_destination",
+        "sub_title": "downloads_folder",
         "value": "C:\\HDRezker"
     },
     "debug_quality": {

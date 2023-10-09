@@ -15,7 +15,7 @@ class SearchController:
 
     def __init__(self, app, name):
         self.app = app
-        self.model = SearchModel()
+        self.model = SearchModel(self.app)
         self.view = SearchScreen(self.app, controller=self, model=self.model, name=name)
 
         self.active_task_id = None
@@ -33,6 +33,18 @@ class SearchController:
 
     def get_screen(self):
         return self.view
+
+    def itemAddedToLibrary(self, url: str):
+        self.model.itemAddedToLibrary(url)
+
+    def itemRemovedFromLibrary(self, url: str):
+        self.model.itemRemovedFromLibrary(url)
+
+    def itemAddedToDownloads(self, url: str):
+        self.model.itemAddedToDownloads(url)
+
+    def itemRemovedFromDownloads(self, url: str):
+        self.model.itemRemovedFromDownloads(url)
 
     def Search(self, request: str):
         self.last_request = request
@@ -126,8 +138,8 @@ class SearchController:
                 counter += 1
             if len(itemsBaseInformation) > 0:
                 self.add_items(itemsBaseInformation)
-        except Exception:
-            print('ERROR WHILE SEARCH!')
+        except Exception as e:
+            print(f'SEARCH ERROR: {e}')
         finally:
             self.search_active = False
             self.app.spinner.stop()

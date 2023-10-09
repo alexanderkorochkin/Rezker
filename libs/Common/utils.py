@@ -7,14 +7,16 @@ import bs4
 import multitasking
 import requests
 from kivy.animation import Animation
-from kivy.clock import mainthread
+from kivy.clock import mainthread, Clock
 from kivy.metrics import dp
 from kivy.properties import partial
+from kivy.uix.behaviors import ButtonBehavior
 from kivy.utils import platform
 from kivymd.uix.anchorlayout import MDAnchorLayout
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.screen import MDScreen
+from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.spinner import MDSpinner
 
 from mutagen.mp4 import MP4, MP4Cover
@@ -23,12 +25,62 @@ from plyer import filechooser
 from libs.hdrezkalib.hdrezka import HdRezkaApi
 
 
+class SnackbarMod(Snackbar, ButtonBehavior):
+    dismiss_action = None
+
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+
+        self.app = app
+        self.isTouched = False
+        self.old_coord = None
+        self.distance = 0
+        self.initial_pos = None
+
+    def on_touch_down(self, touch):
+        if touch.is_mouse_scrolling:
+            return False
+        if not self.collide_point(touch.x, touch.y):
+            return False
+        if not self.disabled:
+            for button in self.buttons:
+                if button.collide_point(touch.x, touch.y):
+                    button.on_touch_down(touch)
+            self.isTouched = True
+            self.old_coord = touch.pos[1]
+            if not self.initial_pos:
+                self.initial_pos = self.pos
+            return True
+
+    def on_touch_move(self, touch, *args):
+        if self.isTouched:
+            new_coord = touch.pos[1]
+            dy = new_coord - self.old_coord
+            self.pos[1] += dy
+            self.distance += dy
+            self.old_coord = new_coord
+            if self.distance > self.height or self.distance < -self.height / 2:
+                self.isTouched = False
+                anim = Animation(y=-2*self.height, d=0.2, t='in_quart')
+                anim.bind(
+                    on_complete=lambda *args: self.dismiss()
+                )
+                anim.start(self)
+
+    def on_dismiss(self, *args):
+        if self.dismiss_action:
+            self.dismiss_action()
+        super(SnackbarMod, self).on_dismiss()
+
+
 class Spinner:
 
     def __init__(self, app):
         self.app = app
         self.screen = None
         self.spinner_anim = None
+        self.started = False
+        self.muted_screen = None
 
         self.spinner_main = MDSpinner(
             size_hint=(None, None),
@@ -46,22 +98,41 @@ class Spinner:
         self.content.add_widget(self.box)
 
     @mainthread
-    def start(self, screen: MDScreen, text: str = 'Загрузка'):
-        self.label.text = text
-        self.screen = screen
-        self.content.opacity = 0
-        self.screen.add_widget(self.content)
-        self.spinner_anim = Animation(opacity=1, d=0.3)
-        self.spinner_anim.start(self.content)
+    def start(self, screen: MDScreen, text: str = 'Загрузка', background_color=None, timeout=60, muted_screen=None):
+        if background_color is None:
+            background_color = [0, 0, 0, 0.4]
+        if not self.started:
+            self.content.md_bg_color = background_color
+            self.started = True
+            self.label.text = text
+            self.screen = screen
+            self.content.opacity = 0
+            self.screen.add_widget(self.content)
+            self.spinner_anim = Animation(opacity=1, d=0.3)
+            self.screen.disabled = True
+
+            if muted_screen:
+                self.muted_screen = muted_screen
+                muted_screen.opacity = 0
+
+            self.spinner_anim.start(self.content)
+            if timeout is not None:
+                Clock.schedule_once(self.stop, timeout)
 
     def removeSpinner(self, *args):
         args[0].remove_widget(self.content)
+        self.screen.disabled = False
+        self.started = False
+        self.muted_screen = None
 
     @mainthread
-    def stop(self):
-        self.spinner_anim = Animation(opacity=0, d=0.3)
-        self.spinner_anim.bind(on_complete=partial(self.removeSpinner, self.screen))
-        self.spinner_anim.start(self.content)
+    def stop(self, *args):
+        if self.started:
+            if self.muted_screen:
+                self.muted_screen.opacity = 1
+            self.spinner_anim = Animation(opacity=0, d=0.3)
+            self.spinner_anim.bind(on_complete=partial(self.removeSpinner, self.screen))
+            self.spinner_anim.start(self.content)
 
 
 @multitasking.task

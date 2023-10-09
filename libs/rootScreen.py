@@ -93,7 +93,9 @@ class RootScreen(MDScreen):
 
     def openSearch(self, request, silent=False):
         self.menuController.view.set_input_text(request)
-        if request != self.searchController.last_request:
+        if silent and request == self.searchController.last_request:
+            pass
+        else:
             self.searchController.model.clear_items()
             self.searchScreen.recycleList.scroll_y = 1
             self.searchController.Search(request)

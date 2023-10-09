@@ -2,21 +2,24 @@ import os
 from typing import Union
 
 from kivy.animation import Animation
+from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
+from kivy.factory import Factory
 from kivy.lang import Builder
 from kivy.metrics import dp, sp
-from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, NumericProperty, StringProperty
+from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, NumericProperty, StringProperty, \
+    ColorProperty, OptionProperty
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.textinput import TextInput
 from kivy.utils import escape_markup
 from kivymd.app import MDApp
 from kivymd.uix.behaviors import HoverBehavior, ScaleBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDRaisedButton, MDFlatButton, MDIconButton
+from kivymd.uix.button import MDRaisedButton, MDFlatButton, MDIconButton, BaseButton
 from kivymd.uix.card import MDCard
-from kivymd.uix.dialog import MDDialog
+from kivymd.uix.dialog import MDDialog, BaseDialog
 from kivymd.uix.label import MDLabel
 from kivymd.uix.list import OneLineListItem
 from kivymd.uix.menu import MDDropdownMenu
@@ -75,11 +78,169 @@ class MDDialogModded(MDDialog):
             self.key_handler(_window, key)
 
 
+class MDDialogConfirm(BaseDialog):
+    title = StringProperty()
+    text = StringProperty()
+    buttons = ListProperty()
+    items = ListProperty()
+    width_offset = NumericProperty(dp(48))
+    type = OptionProperty(
+        "alert", options=["alert", "simple", "confirmation", "custom"]
+    )
+    md_bg_color = ColorProperty(None)
+
+    def __init__(self, key_handler=None, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(on_resize=self.update_width)
+
+        if self.size_hint == [1, 1] and (
+                m_res.DEVICE_TYPE == "desktop" or m_res.DEVICE_TYPE == "tablet"
+        ):
+            self.size_hint = (None, None)
+            self.width = min(dp(560), Window.width - self.width_offset)
+        elif self.size_hint == [1, 1] and m_res.DEVICE_TYPE == "mobile":
+            self.size_hint = (None, None)
+            self.width = min(dp(280), Window.width - self.width_offset)
+
+        if not self.buttons:
+            self.ids.root_button_box.height = 0
+        else:
+            self.create_buttons()
+
+        self.key_handler = key_handler
+        self.isOpen = False
+        Window.bind(on_keyboard=self.on_keyboard_handler)
+
+    def on_keyboard_handler(self, _window, key, *_args):
+        if self.key_handler:
+            self.key_handler(_window, key)
+
+    def update_width(self, *args) -> None:
+        self.width = max(
+            self.height + self.width_offset,
+            min(
+                dp(560) if m_res.DEVICE_TYPE != "mobile" else dp(280),
+                Window.width - self.width_offset,
+            ),
+        )
+
+    def on_open(self) -> None:
+        self.height = self.ids.container.height
+
+    def create_buttons(self) -> None:
+        for button in self.buttons:
+            if issubclass(button.__class__, BaseButton):
+                self.ids.button_box.add_widget(button)
+
+
+class LDialogConfirm:
+
+    def __init__(self, app):
+        self.dialog = None
+        self.app = app
+        self.key = ''
+
+        self._title = 'title'
+        self._confirm_text = 'confirm_text'
+        self._cancel_text = 'cancel_text'
+        self._confirm_action = None
+        self._text = 'text'
+        self._arguments = ()
+
+    def PreFinal(self, *args):
+        self.dialog.opacity = 1
+
+    def PreCache(self):
+        self.RealOpen(pre=True)
+        # self.Close()
+        # Clock.schedule_once(self.PreFinal, 1)
+
+    def on_keyboard(self, _window, key):
+        if self.dialog.isOpen:
+            if key == keycodes['enter']:
+                self.Confirm()
+                return True
+
+    def RealOpen(self, pre=False):
+        if not self.dialog:
+            self.dialog = MDDialogConfirm(
+                title=self._title,
+                text=self._text,
+                key_handler=self.on_keyboard,
+                buttons=[
+                    HoverMDFlatButton(
+                        text=f'[b]{self._cancel_text}[/b]',
+                        markup=True,
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.accent_color,
+                        on_release=self.Close,
+                    ),
+                    HoverMDFlatButton(
+                        theme_text_color="Custom",
+                        markup=True,
+                        text_color='#ef2a41',
+                        text=f'[b]{self._confirm_text}[/b]',
+                        on_release=self.Confirm,
+                    )
+                ]
+            )
+            self.dialog.ids.container.padding = [20, 20, 10, 0]
+        if pre:
+            self.key = 'MDDialogConfirm'
+            Cache.append('precache', self.key, self.dialog)
+        else:
+            self.dialog.isOpen = True
+            self.dialog.open()
+
+    def Open(self, title='', confirm_text='CONFIRM', cancel_text='CANCEL', confirm_action=None, text='', arguments=None):
+        changed = False
+        if self._title != title:
+            self._title = title
+            changed = True
+        if self._confirm_text != confirm_text:
+            self._confirm_text = f'[b]{confirm_text}[/b]'
+            changed = True
+        if self._cancel_text != cancel_text:
+            self._cancel_text = f'[b]{cancel_text}[/b]'
+            changed = True
+        if self._confirm_action != confirm_action:
+            self._confirm_action = confirm_action
+            changed = True
+        if self._text != text:
+            self._text = text
+            changed = True
+        if self._arguments != arguments:
+            self._arguments = arguments
+            changed = True
+        if changed:
+            self.Rebase()
+        self.RealOpen()
+
+    def Close(self, *args):
+        self.dialog.isOpen = False
+        self.dialog.dismiss(force=True)
+
+    def Confirm(self, *args):
+        if self._confirm_action:
+            if self._arguments:
+                self._confirm_action(*self._arguments)
+            else:
+                self._confirm_action()
+        self.Close()
+
+    def Rebase(self):
+        self.dialog.title = self._title
+        self.dialog.buttons[0].text = self._cancel_text
+        self.dialog.buttons[1].text = self._confirm_text
+        self.dialog.text = self._text
+
+
 class LDialogEnterString:
 
     def __init__(self, app):
         self.dialog = None
         self.app = app
+        self.key = ''
 
         self._validate_type = "all"
         self._title = 'title'
@@ -89,10 +250,14 @@ class LDialogEnterString:
         self._text = 'text'
         self._hint_text = 'hint_text'
 
+    def PreFinal(self, *args):
+        self.dialog.opacity = 1
+
     def PreCache(self):
-        self.RealOpen()
-        self.dialog.isOpen = False
-        self.dialog.dismiss(force=True)
+        self.RealOpen(pre=True)
+        # self.dialog.isOpen = False
+        # self.dialog.dismiss(force=True)
+        # Clock.schedule_once(self.PreFinal, 1)
 
     def on_keyboard(self, _window, key):
         if self.dialog.isOpen:
@@ -100,7 +265,7 @@ class LDialogEnterString:
                 self.Confirm()
                 return True
 
-    def RealOpen(self):
+    def RealOpen(self, pre=False):
         if not self.dialog:
             self.dialog = MDDialogModded(
                 title=self._title,
@@ -124,8 +289,12 @@ class LDialogEnterString:
                 ]
             )
         self.dialog.content_cls._hint_text_font_size = sp(10)
-        self.dialog.isOpen = True
-        self.dialog.open()
+        if pre:
+            self.key = 'MDDialogModded'
+            Cache.append('precache', self.key, self.dialog)
+        else:
+            self.dialog.isOpen = True
+            self.dialog.open()
 
     def Open(self, validate_type='all', title='', confirm_text='CONFIRM', cancel_text='CANCEL', confirm_action=None, text='', hint_text=''):
         changed = False

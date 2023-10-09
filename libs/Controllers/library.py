@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 
 import multitasking
 import requests
@@ -17,10 +18,14 @@ class LibraryController:
 
         self.library_instance = {}
 
+        self.libraryLoaded = False
         Clock.schedule_once(self.readLibraryTask, 1)
 
     def get_screen(self):
         return self.view
+
+    def getItemInfo(self, url) -> dict:
+        return self.library_instance[url]
 
     def isLibrary(self, url) -> bool:
         return url in list(self.library_instance.keys())
@@ -31,11 +36,17 @@ class LibraryController:
     @multitasking.task
     def saveLibrary(self):
         try:
+            tempOut = {}
+            for key in list(self.library_instance.keys()):
+                temp = self.library_instance[key].copy()
+                temp['thumbnail'] = self.app.database.convertToRelative(temp['thumbnail'])
+                temp['fullpath'] = self.app.database.convertToRelative(temp['fullpath'])
+                tempOut[key] = temp
             with open(self.app.database.library_file, "w", encoding='utf8') as outfile:
-                json.dump(self.library_instance, outfile, indent=4, separators=(',', ': '), ensure_ascii=False, skipkeys=True,
+                json.dump(tempOut, outfile, indent=4, separators=(',', ': '), ensure_ascii=False, skipkeys=True,
                           default=lambda o: '')
         except Exception as e:
-            print(e)
+            print(f"Unable to save lib file: {e}")
 
     def readLibraryTask(self, dt):
         self.readLibrary()
@@ -44,10 +55,28 @@ class LibraryController:
     def readLibrary(self):
         try:
             with open(self.app.database.library_file, encoding='utf8') as json_file:
-                self.library_instance = json.load(json_file)
+                temp = json.load(json_file)
+            for key in list(temp.keys()):
+                temp[key]['thumbnail'] = self.app.database.convertToDirect(temp[key]['thumbnail'])
+                temp[key]['fullpath'] = self.app.database.convertToDirect(temp[key]['fullpath'])
+            self.library_instance = temp.copy()
             self.model.data = list(self.library_instance.values())
-        except Exception:
-            print('Library is empty!')
+            if not self.libraryLoaded:
+                self.libraryLoaded = True
+                self.app.spinner.stop()
+        except Exception as e:
+            if not self.libraryLoaded:
+                self.libraryLoaded = True
+                self.app.spinner.stop()
+            print(f"Can't load library: {e}")
+
+    def removeFromLibrary(self, url):
+        self.library_instance.pop(url)
+        self.saveLibrary()
+        self.drawLibrary()
+        if self.app.rootScreen.itemController.last_item == url:
+            self.app.rootScreen.itemController.Reload(True)
+        self.app.rootScreen.searchController.itemRemovedFromLibrary(url)
 
     def addToLibrary(self, downloadItem: dict, fromItem=False):
         if downloadItem['url'] not in self.library_instance:
@@ -57,8 +86,9 @@ class LibraryController:
             if not fromItem:
                 temp.pop('download_id')
                 temp.pop('controller')
-                temp.pop('season')
-                temp.pop('episode')
+                if downloadItem['type'] != 'movie':
+                    temp.pop('season')
+                    temp.pop('episode')
                 temp.pop('model')
                 temp.pop('status')
                 temp.pop('progress')
@@ -72,6 +102,7 @@ class LibraryController:
             temp['controller'] = self
             temp['model'] = self.model
             temp['isLibrary'] = True
+            # temp['isDownloading'] = False
             if str(temp['type']) != 'movie':
                 temp['fullpath'] = '\\'.join(str(temp['fullpath']).split('\\')[:-1])
 
@@ -93,11 +124,10 @@ class LibraryController:
             self.drawLibrary()
             if self.app.rootScreen.itemController.last_item == temp['url']:
                 self.app.rootScreen.itemController.Reload()
+            self.app.rootScreen.searchController.itemAddedToLibrary(temp['url'])
         else:
             pass
-
-    def getItemInfo(self, url):
-        return self.library_instance[url]
+        self.app.spinner.stop()
 
     def openItem(self, link):
         self.app.rootScreen.openItem(link)

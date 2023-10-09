@@ -203,5 +203,5 @@
                 padding: [dp(10), dp(10), dp(10), dp(10)]
                 spacing: dp(5)
                 HoverMDFlatButton:
-                    text: 'Подгрузить теги в папке загрузок'
-#                    on_release: pass
+                    text: 'Изменилось расположение загрузок?'
+                    on_release: app.rootScreen.libraryController.changeLibraryPaths()

@@ -1,15 +1,21 @@
-from kivy.clock import Clock
+from kivy.cache import Cache
+from kivy.clock import Clock, mainthread
 from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
 from kivy.factory import Factory
 from kivy.loader import Loader
+from kivy.metrics import dp
 from kivy.properties import NumericProperty, ObjectProperty
 from kivymd.app import MDApp
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.label import MDLabel
+from kivymd.uix.snackbar import Snackbar
 
 from libs.Common.database import DataManager
-from libs.Common.utils import open_in_explorer, Spinner
+from libs.Common.utils import open_in_explorer, Spinner, SnackbarMod
 from libs.Controllers.settings import SettingsController
-from libs.Views.common import LDialogEnterString
+from libs.Views.common import LDialogEnterString, LDialogConfirm
 from libs.rootScreen import RootScreen
 
 from kivy.config import Config
@@ -27,15 +33,16 @@ class RezkerApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.database = DataManager()
+        self.database = DataManager(self)
+        self.msettings = SettingsController(app=self, name='settings')
         self.icon = 'res/icon.ico'
         self.rootScreen = None
 
         self.spinner = Spinner(self)
 
         self.dialogEnterString = LDialogEnterString(app=self)
+        self.dialogConfirm = LDialogConfirm(app=self)
 
-        self.msettings = SettingsController(app=self, name='settings')
         self.settingsScreen = self.msettings.get_screen()
 
     def updateInfoTitle(self, *args):
@@ -81,7 +88,6 @@ class RezkerApp(MDApp):
         Config.set('graphics', 'resizable', True)
         Config.write()
         self.on_resize(Window, Window.size)
-
         self.PreCache()
 
     def build(self):
@@ -95,13 +101,37 @@ class RezkerApp(MDApp):
         self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
 
         self.rootScreen = RootScreen(app=self)
+        self.spinner.start(Window, background_color=self.theme_cls.bg_dark, muted_screen=self.rootScreen)
 
         Clock.schedule_interval(self.updateInfoTitle, 1)
 
         return self.rootScreen
 
+    @mainthread
+    def callMessage(self, text):
+        snackbar = SnackbarMod(self)
+        snackbar.text = text
+        snackbar.bg_color = self.theme_cls.bg_light
+        snackbar.ids.text_bar.text_color = self.theme_cls.accent_color
+        snackbar.ids.text_bar.text_style = 'Body1'
+
+        snackbar.duration = 4
+        snackbar.snackbar_x = dp(20)
+        snackbar.snackbar_y = dp(20)
+        snackbar.size_hint = None, None
+        snackbar.width = Window.width - (dp(20) * 2) if Window.width < len(text) * 7 + dp(20) * 4 else len(text) * 7 + dp(20) * 2
+        snackbar.height = dp(40)
+        snackbar.pos_hint = {'center_x': 0.5}
+
+        snackbar.radius = [8, 8, 8, 8]
+        snackbar.elevation = 1
+        snackbar.ids.text_bar.halign = 'center'
+        snackbar.open()
+
     def PreCache(self):
+        Cache.register('preload', limit=2)
         self.dialogEnterString.PreCache()
+        self.dialogConfirm.PreCache()
 
 
 rezkerApp = RezkerApp()

@@ -48,6 +48,7 @@ class ItemScreen(MDScreen, Observer):
     quality = StringProperty('')
     translation = StringProperty('')
     isLibrary = BooleanProperty(False)
+    isDownloading = BooleanProperty(False)
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -73,6 +74,12 @@ class ItemScreen(MDScreen, Observer):
             self.description = self.model.itemBaseInformation['description']
             if "isLibrary" in self.model.itemBaseInformation:
                 self.isLibrary = self.model.itemBaseInformation['isLibrary']
+            else:
+                self.isLibrary = False
+            if "isDownloading" in self.model.itemBaseInformation:
+                self.isDownloading = self.model.itemBaseInformation['isDownloading']
+            else:
+                self.isDownloading = False
             if "translation" in self.model.itemBaseInformation:
                 self.translation = self.model.itemBaseInformation['translation']
             if "quality" in self.model.itemBaseInformation:

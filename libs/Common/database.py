@@ -8,7 +8,8 @@ from libs.Common.utils import create_dir
 class DataManager:
     _user_folder = os.path.join(os.path.normpath(storagepath.get_home_dir()), 'HDRezker')
 
-    def __init__(self):
+    def __init__(self, app):
+        self.app = app
         create_dir(self._user_folder)
 
     @property
@@ -32,3 +33,15 @@ class DataManager:
             return path
         else:
             print(f'DataManager: Path: {os.path.join(self._user_folder, *paths)} is not a link to file!')
+
+    def convertToDirect(self, path: str):
+        if '[downloads_folder]' in path:
+            return path.replace('[downloads_folder]', self.app.msettings.get('downloads_folder'))
+        if '[user_folder]' in path:
+            return path.replace('[user_folder]', self.user_folder())
+
+    def convertToRelative(self, path: str):
+        if self.app.msettings.get('downloads_folder') in path:
+            return path.replace(self.app.msettings.get('downloads_folder'), '[downloads_folder]')
+        if self.user_folder() in path:
+            return path.replace(self.user_folder(), '[user_folder]')

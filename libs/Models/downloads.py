@@ -27,6 +27,7 @@ class DownloadsModel:
         self._observers = []
         self.data = []
         self.dictionary = {}
+        self.dictionary_hdrezka = {}
         self.updateTask = Clock.schedule_interval(self.logic, 1)
         self.downloading = []
         self.isClosing = False
@@ -51,7 +52,7 @@ class DownloadsModel:
                             if downloader.get_status() == 'finished':
                                 if downloader.isSuccessful():
                                     item['status'] = STATUS.FINISHED
-                                    self.removeDownload(download_id)
+                                    self.removeDownload(download_id, no_callback_to_item=True)
                                     self.app.rootScreen.libraryController.addToLibrary(item)
                                 else:
                                     print(f"ERROR DOWNLOADING: {item['title']}")
@@ -117,7 +118,7 @@ class DownloadsModel:
     def setDoRemoveDownload(self, download_id: str):
         self.getDataItem(download_id)['doRemove'] = True
 
-    def removeDownload(self, download_id: str):
+    def removeDownload(self, download_id: str, no_callback_to_item=False):
         if not self.getDataItemDownloader(download_id).isFinished():
             file = self.getDataItem(download_id)['fullpath']
             self.getDataItemDownloader(download_id).stop()
@@ -128,7 +129,7 @@ class DownloadsModel:
             addTags(app=self.app, info=self.getDataItem(download_id).copy())
         if self.downloading.count(download_id) > 0:
             self.downloading.remove(download_id)
-        self.removeDataItem(download_id)
+        self.removeDataItem(download_id, no_callback_to_item)
 
     def addAlreadyDownloaded(self, fullpath):
         pass
@@ -178,7 +179,14 @@ class DownloadsModel:
     def getDataItem(self, download_id: str) -> dict:
         return self.data[self.idToIndex(download_id)]
 
-    def removeDataItem(self, download_id: str):
+    def removeDataItem(self, download_id: str, no_callback_to_item=False):
+        if self.dictionary_hdrezka[self.getDataItem(download_id)['url']] == 1:
+            self.dictionary_hdrezka.pop(self.getDataItem(download_id)['url'])
+            if self.app.rootScreen.itemController.last_item == self.getDataItem(download_id)['url'] and not no_callback_to_item:
+                self.app.rootScreen.itemController.Reload(True)
+            self.app.rootScreen.searchController.itemRemovedFromDownloads(self.getDataItem(download_id)['url'])
+        else:
+            self.dictionary_hdrezka[self.getDataItem(download_id)['url']] -= 1
         self.data.pop(self.idToIndex(download_id))
         doShift = False
         for key in list(self.dictionary.keys()):
@@ -192,6 +200,13 @@ class DownloadsModel:
     def addDataItem(self, itemInfo: dict, download_id: str):
         self.data.append(itemInfo.copy())
         self.dictionary[download_id] = len(self.data) - 1
+        if itemInfo['url'] in self.dictionary_hdrezka:
+            self.dictionary_hdrezka[itemInfo['url']] += 1
+        else:
+            self.dictionary_hdrezka[itemInfo['url']] = 1
+            if self.app.rootScreen.itemController.last_item == itemInfo['url']:
+                self.app.rootScreen.itemController.Reload(True)
+            self.app.rootScreen.searchController.itemAddedToDownloads(self.getDataItem(download_id)['url'])
         self.notify_observers()
 
     def idToIndex(self, download_id: str):
@@ -210,8 +225,8 @@ class DownloadsModel:
         while os.path.exists(str(file + f'.{i:03}')):
             try:
                 os.remove(str(file + f'.{i:03}'))
-            except Exception:
-                print(f"clearCache: Unable to remove file: {str(file + f'.{i:03}')}.")
+            except Exception as e:
+                print(f"clearCache: Unable to remove file: {str(file + f'.{i:03}')}. {e}")
             i += 1
         if isSeries:
             folder = "\\".join(file.split("\\")[:-1])

@@ -52,8 +52,37 @@
                         MDLabel:
                             id: sub_type
                             font_size: 12
-                            font_name: 'assets/fonts/Roboto-Medium.ttf'
-                            text: truncate_string(root.sub_type, 35)
+                            font_name: 'assets/fonts/Roboto-Bold.ttf'
+                            text: root.sub_type
+                            size_hint: None, None
+                            height: dp(20)
+                            text_size: None, None
+                MDAnchorLayout:
+                    anchor_x: 'right'
+                    padding: [dp(5), 0, dp(5), 0]
+                    MDAnchorLayout:
+                        anchor_y: 'bottom'
+                        padding: [0, dp(5), 0, dp(5)]
+                        size_hint_x: None
+                        width: in_library_card.width
+                        MDCard:
+                            id: in_library_card
+                            md_bg_color: app.theme_cls.primary_color
+                            size_hint: None, None
+                            height: dp(20)
+                            width: in_library.texture_size[0] + dp(20)
+                            adaptive_width: True
+                            opacity: 1 if root.isLibrary or root.isDownloading else 0
+                            radius: 8
+                        MDLabel:
+                            id: in_library
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.bg_dark
+                            font_size: 12
+                            markup: True
+                            font_name: 'assets/fonts/Roboto-Bold.ttf'
+                            text: 'Скачан' if root.isLibrary else 'Скачивается' if root.isDownloading else ''
+                            opacity: 1 if root.isLibrary or root.isDownloading else 0
                             size_hint: None, None
                             height: dp(20)
                             text_size: None, None

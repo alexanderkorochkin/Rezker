@@ -53,7 +53,7 @@
                     id: info_table
                     orientation: 'horizontal'
                     size_hint_y: None
-                    height: max(card.height, information.height)
+                    height: max(cover_buttons.height, information.height)
                     spacing: dp(20)
                     MDAnchorLayout:
                         id: left_box
@@ -61,6 +61,7 @@
                         size_hint_x: None
                         width: card.width
                         MDBoxLayout:
+                            id: cover_buttons
                             orientation: 'vertical'
                             adaptive_height: True
                             spacing: dp(10)
@@ -75,6 +76,24 @@
                                     id: thumbnail
                                     radius: [8, 8, 8, 8]
                                     source: root.thumbnail
+                            HoverMDFlatButton:
+                                id: btn_watch_download
+                                size_hint_x: 1
+                                markup: True
+                                text: '[b]Смотреть[/b]' if root.isLibrary else '[b]Загружается[/b]' if root.isDownloading else '[b]Скачать[/b]'
+                                theme_text_color: "Custom"
+                                text_color: app.theme_cls.primary_color
+                                disabled: True if root.isDownloading else False if root.isLibrary else False if root.translation != '' else True
+                                on_release: root.controller.addDownload(root.translation) if not root.isLibrary else root.controller.playItem()
+                            HoverMDFlatButton:
+                                id: btn_add_delete
+                                new_bg_color: 0, 0, 0, 0
+                                size_hint_x: 1
+                                markup: True
+                                text: f'[b]Удалить из библиотеки[/b]' if root.isLibrary else f'[b]Уже скачан?[/b]'
+                                theme_text_color: "Custom"
+                                text_color: '#ef2a41' if root.isLibrary else 'white'
+                                on_release: root.controller.removeFromLibrary() if root.isLibrary else root.controller.addToLibrary()
                     MDAnchorLayout:
                         id: right_box
                         anchor_y: 'top'
@@ -82,7 +101,7 @@
                             id: information
                             orientation: 'vertical'
                             adaptive_height: True
-                            spacing: dp(0) if root.title else dp(5)
+                            spacing: dp(5)
                             LoaderLabel:
                                 text: root.title + root.year
                                 font_style: 'H5'
@@ -90,7 +109,6 @@
                                 default_size_x: dp(350)
                                 default_size_y: dp(30)
                                 height: self.texture_size[1] or dp(30)
-                                padding: [0, 0, 0, 0]
                             LoaderLabel:
                                 text: root.title_en
                                 theme_text_color: "Custom"
@@ -100,7 +118,6 @@
                                 default_size_x: dp(100)
                                 default_size_y: dp(10)
                                 height: self.texture_size[1] or dp(10)
-                                padding: [0, dp(5), 0, 0]
                             LoaderLabel:
                                 markup: True
                                 text: f'Слоган: [b]{root.tagline}[/b]' if root.tagline else ''
@@ -110,7 +127,6 @@
                                 default_size_y: dp(20)
                                 height: self.texture_size[1] or dp(20) if root.tagline != 'None' else 0
                                 opacity: 1 if root.tagline != 'None' else 0
-                                padding: [0, dp(5), 0, 0] if root.tagline != 'None' else [0, 0, 0, 0]
                             LoaderLabel:
                                 markup: True
                                 text: f'Категория: [b]{root.sub_type}[/b]' if root.sub_type else ''
@@ -120,7 +136,6 @@
                                 default_size_y: dp(20)
                                 height: self.texture_size[1] or dp(20)
                                 opacity: 1 if root.sub_type != 'None' else 0
-                                padding: [0, dp(5), 0, 0] if root.sub_type != 'None' else [0, 0, 0, 0]
                             LoaderLabel:
                                 markup: True
                                 text: f'Жанр: [b]{root.genre}[/b]' if root.genre else ''
@@ -130,7 +145,6 @@
                                 default_size_y: dp(20)
                                 height: self.texture_size[1] or dp(20)
                                 opacity: 1 if root.genre != 'None' else 0
-                                padding: [0, dp(5), 0, 0] if root.genre != 'None' else [0, 0, 0, 0]
                             LoaderLabel:
                                 markup: True
                                 text: f'Рейтинг: [b]{root.rate}[/b]' if root.rate else ''
@@ -140,7 +154,6 @@
                                 default_size_y: dp(20)
                                 height: self.texture_size[1] or dp(20)
                                 opacity: 1 if root.rate != 'None' else 0
-                                padding: [0, dp(5), 0, 0] if root.rate != 'None' else [0, 0, 0, 0]
                             LoaderLabel:
                                 markup: True
                                 text: f'Дата выхода: [b]{root.date}[/b]' if root.date else ''
@@ -150,7 +163,6 @@
                                 default_size_y: dp(20)
                                 height: self.texture_size[1] or dp(20)
                                 opacity: 1 if root.date != 'None' else 0
-                                padding: [0, dp(5), 0, 0] if root.date != 'None' else [0, 0, 0, 0]
                             LoaderLabel:
                                 markup: True
                                 text: f'Возраст: [b]{root.age}[/b]' if root.age else ''
@@ -160,7 +172,6 @@
                                 default_size_y: dp(20)
                                 height: self.texture_size[1] or dp(20) if root.age != 'None' else 0
                                 opacity: 1 if root.age != 'None' else 0
-                                padding: [0, dp(5), 0, 0] if root.age != 'None' else [0, 0, 0, 0]
                             LoaderLabel:
                                 markup: True
                                 text: f'Длительность: [b]{root.duration}[/b]' if root.duration else ''
@@ -170,62 +181,17 @@
                                 default_size_y: dp(20)
                                 height: self.texture_size[1] or dp(20)
                                 opacity: 1 if root.duration != 'None' else 0
-                                padding: [0, dp(5), 0, 0] if root.duration != 'None' else [0, 0, 0, 0]
-                LoaderLabel:
-                    markup: True
-                    text: 'Описание:' if root.description else ''
-                    font_style: 'H5'
-                    size_hint: 1, None
-                    default_size_x: dp(150)
-                    default_size_y: dp(30)
-                    height: self.texture_size[1] or dp(30)
-                LoaderLabel:
-                    markup: True
-                    multiline: True
-                    text: root.description
-                    font_style: 'Body2'
-                    size_hint: 1, None
-                    default_size_x: Window.size[0] - dp(20)
-                    default_size_y: dp(100)
-                    height: self.texture_size[1] or dp(100)
-                LoaderLabel:
-                    id: translations_label
-                    markup: True
-                    text: 'Озвучки:' if root.title else ''
-                    font_style: 'H5'
-                    size_hint: 1, None
-                    default_size_x: dp(100)
-                    default_size_y: dp(20)
-                    height: self.texture_size[1] or dp(20)
-                    opacity: 0 if root.isLibrary else 1 if root.title != 'None' else 0
-                    padding: [0, -dp(20), 0, 0] if root.isLibrary else [0, dp(5), 0, 0] if root.title != 'None' else [0, 0, 0, 0]
-                MDBoxLayout:
-                    id: translations_box
-                    orientation: 'horizontal'
-                    size_hint_y: None
-                    height: dp(36) if not root.isLibrary else dp(0)
-                MDBoxLayout:
-                    orientation: 'horizontal'
-                    size_hint_y: None
-                    height: btn_download.height
-                    pos: [self.pos[0], 45] if root.isLibrary else [self.pos[0], self.pos[1]]
-                    spacing: dp(10)
-                    HoverMDFlatButton:
-                        id: btn_download
-                        markup: True
-                        text: f'[b]Смотреть' if root.isLibrary else f'Скачать в озвучке: {root.translationText}' if root.translation != '' else 'Выберите озвучку'
-                        theme_text_color: "Custom"
-                        text_color: 'white'
-                        disabled: False if root.isLibrary else False if root.translation != '' else True
-#                        pos: [self.pos[0], 45] if root.isLibrary else [self.pos[0], self.pos[1]]
-                        on_release: root.controller.addDownload(root.translation) if not root.isLibrary else root.controller.playItem()
-                    HoverMDFlatButton:
-                        id: btn_download
-                        markup: True
-                        text: '' if root.isLibrary else f'[b]Уже скачан?[/b]'
-                        theme_text_color: "Custom"
-                        text_color: 'white'
-                        disabled: True if root.isLibrary else False
-                        opacity: 0 if root.isLibrary else 1
-#                        pos: [self.pos[0], 45] if root.isLibrary else [self.pos[0], self.pos[1]]
-                        on_release: root.controller.addLibrary()
+                            MDBoxLayout:
+                                id: translations_box
+                                orientation: 'horizontal'
+                                size_hint_y: None
+                                height: dp(36) if not root.isLibrary else dp(0)
+                            LoaderLabel:
+                                markup: True
+                                multiline: True
+                                text: root.description
+                                font_style: 'Body2'
+                                size_hint: 1, None
+                                default_size_x: Window.size[0] - dp(20)
+                                default_size_y: dp(100)
+                                height: self.texture_size[1] or dp(100)

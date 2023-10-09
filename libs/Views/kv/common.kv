@@ -1,3 +1,39 @@
+<MDDialogConfirm>
+
+    DialogContainer:
+        id: container
+        orientation: "vertical"
+        size_hint_y: None
+        height: self.minimum_height
+        padding: "24dp", "24dp", "8dp", "8dp"
+        radius: root.radius
+        md_bg_color:
+            root.theme_cls.bg_dark \
+            if not root.md_bg_color else root.md_bg_color
+        spacing: dp(10)
+
+        MDLabel:
+            id: title
+            text: root.title
+            font_style: "H6"
+            bold: True
+            markup: True
+            size_hint_y: None
+            height: self.texture_size[1]
+            valign: "top"
+
+        AnchorLayout:
+            id: root_button_box
+            size_hint_y: None
+            height: "52dp"
+            anchor_x: "right"
+
+            MDBoxLayout:
+                id: button_box
+                adaptive_size: True
+                spacing: "8dp"
+
+
 <MDCardButton@MDCard+ButtonBehavior>:
 
 

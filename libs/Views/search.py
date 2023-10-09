@@ -5,7 +5,7 @@ from kivy.animation import Animation
 from kivy.clock import mainthread, Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, partial, StringProperty
+from kivy.properties import ObjectProperty, partial, StringProperty, BooleanProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.screen import MDScreen
@@ -49,6 +49,8 @@ class SearchItem(MDBoxLayout):
     type = StringProperty('')
     sub_type = StringProperty('')
     summary_info = StringProperty('')
+    isLibrary = BooleanProperty(False)
+    isDownloading = BooleanProperty(False)
 
 
 class RVSearchItems(MDRecycleView):
@@ -127,6 +129,7 @@ class SearchScreen(MDScreen, Observer):
         bottom = self.recycleList.scroll_y * (vp_height - sv_height)
 
         if new_len != 0:
+            self.recycleList.data = []
             self.recycleList.data = self.model.data.copy()
 
         if vp_height + self.default_height * delta_rows > sv_height and delta_rows >= 0:
