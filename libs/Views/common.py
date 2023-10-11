@@ -1,18 +1,19 @@
 import os
 from typing import Union
 
+import mouse
 from kivy.animation import Animation
 from kivy.cache import Cache
 from kivy.clock import Clock
 from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
-from kivy.factory import Factory
 from kivy.lang import Builder
 from kivy.metrics import dp, sp
 from kivy.properties import BooleanProperty, ListProperty, ObjectProperty, NumericProperty, StringProperty, \
     ColorProperty, OptionProperty
-from kivy.uix.behaviors import FocusBehavior
+from kivy.uix.behaviors import FocusBehavior, ButtonBehavior
 from kivy.uix.textinput import TextInput
+from kivy.uix.video import Video
 from kivy.utils import escape_markup
 from kivymd.app import MDApp
 from kivymd.uix.behaviors import HoverBehavior, ScaleBehavior
@@ -20,7 +21,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton, MDFlatButton, MDIconButton, BaseButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.dialog import MDDialog, BaseDialog
-from kivymd.uix.label import MDLabel
+from kivymd.uix.label import MDLabel, MDIcon
 from kivymd.uix.list import OneLineListItem
 from kivymd.uix.menu import MDDropdownMenu
 
@@ -31,17 +32,366 @@ from kivymd.uix.textfield import MDTextField
 from libs.Common.utils import keycodes
 
 
-class AdaptiveMDLabel(MDLabel):
+class IconButton(ButtonBehavior, MDIcon):
+    pass
 
-    def setTextToFit(self, text):
-        self.text = text
-        m = 1
-        self.font_size = self.height * m
-        self.texture_update()
-        while m > 0.3 and self.texture_size[0] > self.width:
-            m = m - 0.05
-            self.font_size = self.height * m
-            self.texture_update()
+
+class CustomVideo(Video):
+
+    callback = ObjectProperty()
+
+    def _on_load(self, *largs):
+        self.loaded = True
+        self._on_video_frame(largs)
+        if self.callback:
+            self.callback(init=True)
+
+
+class TimeTip(MDCard):
+    text = StringProperty('00:00:00')
+
+
+class CustomVideoPlayer(MDBoxLayout):
+
+    heightCalculated = NumericProperty(0)
+    source = StringProperty('')
+    preview = StringProperty('')
+    state = OptionProperty('stop', options=['play', 'pause', 'stop'])
+    progress = NumericProperty(0)
+    text_progress = StringProperty('-')
+    text_duration = StringProperty('-')
+    fullscreen = BooleanProperty(False)
+    _volume = NumericProperty(1)
+    muted = BooleanProperty(False)
+
+    def __init__(self, app):
+        super(CustomVideoPlayer, self).__init__()
+        self.last_mouse_pos_absolute = None
+        self.app = app
+        self.last_mouse_pos = (0, 0)
+        self.video = self.ids.video
+        self.video.callback = self.updateHeight
+        self.controlsAnim = None
+        self.hideControlsTask = None
+        self.fbind('state', self.on_state)
+        self.fbind('fullscreen', self.on_fullscreen_callback)
+        os.environ['KIVY_VIDEO'] = 'ffpyplayer'
+        Window.bind(mouse_pos=self.on_mouse_pos)
+        Window.bind(size=self.updateHeightTask)
+        self.progress_drag = False
+        self.update_text_progress_task = None
+        self._fullscreen_state = {}
+        self.blockPause = True
+        self.last_volume = 100
+
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
+
+    @property
+    def volume(self):
+        return self._volume
+
+    @volume.setter
+    def volume(self, value):
+        if value < 0:
+            value = 0
+            self.muted = True
+        elif value > 1:
+            value = 1
+        else:
+            self.muted = False
+        self.video.volume = value
+        self._volume = value
+
+    def volume_muter(self):
+        if self.volume != 0:
+            self.last_volume = self.volume
+            self.volume = 0
+            self.muted = True
+        else:
+            if self.last_volume != 0:
+                self.volume = self.last_volume
+            else:
+                self.volume = 1
+            self.muted = False
+
+    def _keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        if self.app.rootScreen.screenManager.current == 'item':
+            if keycode[1] == 'escape':
+                self.fullscreen = False
+            elif keycode[1] == 'f':
+                self.fullscreen = not self.fullscreen
+            elif keycode[1] == 'spacebar':
+                self.play_pause()
+            elif keycode[1] in ['right', 'd']:
+                self.showControls()
+                self.planeHideControls()
+                self.seekSeconds(10)
+            elif keycode[1] in ['left', 'a']:
+                self.showControls()
+                self.planeHideControls()
+                self.seekSeconds(-10)
+            elif keycode[1] in ['up', 'w']:
+                self.volume += 0.1
+            elif keycode[1] in ['down', 's']:
+                self.volume -= 0.1
+            elif keycode[1] == 'm':
+                self.volume_muter()
+        return True
+
+    def on_initialize(self):
+        self.text_duration = self.progressToString()
+        self.text_progress = self.progressToString(0)
+        self.state = 'pause'
+
+    def seekSeconds(self, increment):
+        new_progress = (self.video.position + increment) / self.video.duration
+        if new_progress < 0:
+            new_progress = 0
+        elif new_progress > 1:
+            new_progress = 1
+        self.toProgress(new_progress)
+
+    def toProgress(self, progress):
+        if progress < ((self.video.duration - 8) / self.video.duration):
+            self.video.seek(progress)
+            self.update_text_progress()
+        else:
+            self.videoDone()
+
+    def videoDone(self, *args):
+        self.text_duration = self.progressToString()
+        self.text_progress = self.progressToString(0)
+        self.video.seek(0)
+        self.state = 'pause'
+        self.update_text_progress(ending=True)
+        self.showControls()
+
+    def update_text_progress_caller(self, *args):
+        if not self.progress_drag:
+            self.update_text_progress()
+
+    def update_text_progress(self, ending=False):
+        if not ending and self.video.duration > 8 and self.video.position > self.video.duration - 8:
+            self.videoDone()
+        if self.progress_drag:
+            self.text_progress = self.progressToString(self.progress)
+        else:
+            self.progress = round(100 * self.video.position / self.video.duration, 3)
+            self.text_progress = self.progressToString(self.progress)
+
+    def progressToString(self, progress=100):
+        duration = self.video.duration * progress / 100
+        hh = int((duration / 60) / 60)
+        duration = duration - hh * 60 * 60
+        mm = int((duration / 60))
+        duration = duration - mm * 60
+        ss = int(duration)
+        if hh < 10:
+            hh = f'0{hh}'
+        if mm < 10:
+            mm = f'0{mm}'
+        if ss < 10:
+            ss = f'0{ss}'
+        string = f'{hh}:{mm}:{ss}'
+        return string
+
+    def play_pause(self):
+        if self.blockPause:
+            if self.state == 'pause' or self.state == 'stop':
+                self.state = 'play'
+            else:
+                self.state = 'pause'
+
+    def resumeUpdateTextTask(self, *args):
+        self.update_text_progress_task = Clock.schedule_interval(self.update_text_progress_caller, 0.2)
+
+    def moveMouseLow(self, *args):
+        mouse.move(*self.last_mouse_pos_absolute, absolute=True, duration=0)
+        self.showMouse()
+
+    def moveMouse(self):
+        Clock.schedule_once(self.moveMouseLow, 0.2)
+
+    def on_fullscreen_callback(self, instance, value):
+        window = self.get_parent_window()
+        if not window:
+            if value:
+                self.fullscreen = False
+            return
+        if not self.parent:
+            if value:
+                self.fullscreen = False
+            return
+
+        if value:
+            self._fullscreen_state = state = {
+                'parent': self.parent,
+                'pos': self.pos,
+                'size': self.size,
+                'pos_hint': self.pos_hint,
+                'size_hint': self.size_hint,
+                'window_children': window.children[:]}
+
+            # remove all window children
+            for child in window.children[:]:
+                window.remove_widget(child)
+
+            # put the video in fullscreen
+            if state['parent'] is not window:
+                state['parent'].remove_widget(self)
+            window.add_widget(self)
+
+            self.pos = (0, 0)
+            self.size_hint = (1, 1)
+            self.last_mouse_pos_absolute = mouse.get_position()
+            self.hideMouse()
+            Window.fullscreen = 'auto'
+            self.moveMouse()
+        else:
+            state = self._fullscreen_state
+            window.remove_widget(self)
+            for child in state['window_children']:
+                window.add_widget(child)
+            self.pos_hint = state['pos_hint']
+            self.size_hint = (1, None)
+            self.pos = state['pos']
+            self.size = state['size']
+            if state['parent'] is not window:
+                state['parent'].add_widget(self)
+            self.last_mouse_pos_absolute = mouse.get_position()
+            self.hideMouse()
+            Window.fullscreen = False
+            self.moveMouse()
+
+    def on_touch_down(self, touch):
+        super(CustomVideoPlayer, self).on_touch_down(touch)
+
+    def on_touch_up(self, touch):
+        if touch.button == 'left':
+            if self.collide_point(*touch.pos):
+                if touch.is_double_tap:
+                    self.fullscreen = not self.fullscreen
+                if not self.ids.controls_panel.collide_point(*self.ids.controls_panel.to_widget(touch.pos[0], touch.pos[1])) or self.ids.controls.disabled:
+                    self.play_pause()
+        super(CustomVideoPlayer, self).on_touch_up(touch)
+
+    def on_touch_up_progress(self, *args):
+        if args[1].button == 'left':
+            if self.ids.progress.collide_point(args[1].pos[0], args[1].pos[1]) or self.ids.progress.collide_point(args[1].pos[0] - dp(5), args[1].pos[1]) or self.ids.progress.collide_point(args[1].pos[0] + dp(5), args[1].pos[1]):
+                self.progress = round(((args[1].pos[0] - (self.ids.controls_box.padding[0] + self.ids.btn_play_pause.width + dp(15))) / self.ids.progress.width) * 100, 3)
+                if self.progress < 0:
+                    self.progress = 0
+                elif self.progress > 100:
+                    self.progress = 100
+                if self.update_text_progress_task:
+                    self.update_text_progress_task.cancel()
+                self.toProgress(self.progress / 100)
+                Clock.schedule_once(self.resumeUpdateTextTask, 0.2)
+        self.progress_drag = False
+
+    def on_touch_down_progress(self, *args):
+        if args[1].button == 'left':
+            self.progress_drag = True
+            if self.ids.progress.collide_point(args[1].pos[0], args[1].pos[1]) or self.ids.progress.collide_point(args[1].pos[0] - dp(5), args[1].pos[1]) or self.ids.progress.collide_point(args[1].pos[0] + dp(5), args[1].pos[1]):
+                self.progress = round(((args[1].pos[0] - (self.ids.controls_box.padding[0] + self.ids.btn_play_pause.width + dp(15))) / self.ids.progress.width) * 100, 3)
+                if self.progress < 0:
+                    self.progress = 0
+                elif self.progress > 100:
+                    self.progress = 100
+                self.update_text_progress()
+
+    def on_touch_move_progress(self, *args):
+        if args[1].button == 'left':
+            if self.ids.progress.collide_point(args[1].pos[0], args[1].pos[1]) or self.ids.progress.collide_point(args[1].pos[0] - dp(5), args[1].pos[1]) or self.ids.progress.collide_point(args[1].pos[0] + dp(5), args[1].pos[1]):
+                self.progress = round(((args[1].pos[0] - (self.ids.controls_box.padding[0] + self.ids.btn_play_pause.width + dp(15))) / self.ids.progress.width) * 100, 3)
+                if self.progress < 0:
+                    self.progress = 0
+                elif self.progress > 100:
+                    self.progress = 100
+                self.update_text_progress()
+            elif self.progress_drag and (self.ids.progress.collide_point(args[1].pos[0], self.ids.progress.center_y) or self.ids.progress.collide_point(args[1].pos[0] - dp(5), self.ids.progress.center_y) or self.ids.progress.collide_point(args[1].pos[0] + dp(5), self.ids.progress.center_y)):
+                self.progress = round(((args[1].pos[0] - (self.ids.controls_box.padding[0] + self.ids.btn_play_pause.width + dp(15))) / self.ids.progress.width) * 100, 3)
+                if self.progress < 0:
+                    self.progress = 0
+                elif self.progress > 100:
+                    self.progress = 100
+                self.update_text_progress()
+
+    def on_mouse_pos(self, instance, pos):
+        self.last_mouse_pos = pos
+        if self.collide_point(*pos):
+            if self.ids.controls_panel.collide_point(*self.ids.controls_panel.to_widget(*pos)):
+                if self.hideControlsTask:
+                    self.hideControlsTask.cancel()
+                    self.hideControlsTask = None
+                self.showControls()
+            else:
+                self.showControls()
+                self.planeHideControls()
+        if self.ids.progress.collide_point(*self.ids.progress.to_widget(*pos)):
+            progress = round(((self.ids.progress.to_widget(pos[0], 0)[0] - (self.ids.controls_box.padding[0] + self.ids.btn_play_pause.width + dp(15))) / self.ids.progress.width) * 100, 3)
+            self.ids.time_tip.text = self.progressToString(progress)
+            self.ids.time_tip.pos = [(progress * self.ids.progress.width) / 100 + dp(10), self.ids.progress.center_y + dp(20)]
+            if self.ids.time_tip.opacity == 0:
+                self.ids.time_tip.opacity = 1
+        else:
+            if self.ids.time_tip.opacity == 1:
+                Animation(opacity=0, d=0.1).start(self.ids.time_tip)
+
+    def updateHeightTask(self, *args):
+        self.updateHeight()
+
+    def updateHeight(self, init=False):
+        if init:
+            self.on_initialize()
+        video = self.video._video
+        if video:
+            ratio = video.texture.size[0] / video.texture.size[1]
+            self.heightCalculated = self.width / ratio
+
+    def showMouse(self, *args):
+        Window.show_cursor = True
+
+    def hideMouse(self, *args):
+        if self.app.rootScreen.screenManager.current == 'item' and self.state == 'play' and self.collide_point(*self.last_mouse_pos):
+            Window.show_cursor = False
+
+    def showControls(self):
+        self.showMouse()
+        if self.ids.controls.disabled:
+            self.ids.controls.disabled = False
+            self.controlsAnim = Animation(opacity=1, d=0.1)
+            self.controlsAnim.start(self.ids.controls)
+
+    def hideControls(self, *args):
+        if self.state == 'play' and not self.ids.controls.disabled:
+            self.ids.controls.disabled = True
+            self.controlsAnim = Animation(opacity=0, d=0.1)
+            self.controlsAnim.start(self.ids.controls)
+            Clock.schedule_once(self.hideMouse, 0.5)
+
+    def planeHideControls(self, timeout=1.5):
+        if self.hideControlsTask is None:
+            self.hideControlsTask = Clock.schedule_once(self.hideControls, timeout)
+        else:
+            self.hideControlsTask.cancel()
+            self.hideControlsTask = None
+            self.planeHideControls(timeout)
+
+    def on_state(self, *args):
+        if args[1] == 'play':
+            self.planeHideControls()
+            if not self.update_text_progress_task:
+                self.update_text_progress_task = Clock.schedule_interval(self.update_text_progress_caller, 0.2)
+        else:
+            if self.update_text_progress_task:
+                self.update_text_progress_task.cancel()
+                self.update_text_progress_task = None
 
 
 def truncate_string(string, N, screen_brackets=False, no_space=True):

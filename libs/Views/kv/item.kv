@@ -34,8 +34,6 @@
         do_scroll_x: False
         do_scroll_y: True
         always_overscroll: False
-        effect_cls: Factory.DampedScrollEffect
-        scroll_wheel_distance: dp(30)
         MDAnchorLayout:
             anchor_x: 'center'
             anchor_y: 'top'
@@ -181,11 +179,6 @@
                                 default_size_y: dp(20)
                                 height: self.texture_size[1] or dp(20)
                                 opacity: 1 if root.duration != 'None' else 0
-                            MDBoxLayout:
-                                id: translations_box
-                                orientation: 'horizontal'
-                                size_hint_y: None
-                                height: dp(36) if not root.isLibrary else dp(0)
                             LoaderLabel:
                                 markup: True
                                 multiline: True
@@ -195,3 +188,23 @@
                                 default_size_x: Window.size[0] - dp(20)
                                 default_size_y: dp(100)
                                 height: self.texture_size[1] or dp(100)
+                                padding: [0, dp(5), 0, 0]
+                            MDBoxLayout:
+                                id: translations_box
+                                orientation: 'horizontal'
+                                size_hint_y: None
+                                height: dp(44) if not root.isLibrary else dp(0)
+                            MDBoxLayout:
+                                id: video_placeholder_box
+                                padding: [0, dp(10), 0, 0]
+                                size_hint: (1, None)
+                                height: video_placeholder.height if root.isLibrary else 0
+                                disabled: False if root.isLibrary else True
+                                opacity: 1 if root.isLibrary else 0
+                                pos_hint: {'center_x': 0.5}
+                                MDBoxLayout:
+                                    id: video_placeholder
+                                    disabled: False if root.isLibrary else True
+                                    opacity: 1 if root.isLibrary else 0
+                                    adaptive_height: True
+                                    md_bg_color: 'black'

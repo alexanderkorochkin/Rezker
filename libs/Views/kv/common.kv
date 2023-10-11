@@ -1,3 +1,99 @@
+<CustomVideo>:
+
+
+<TimeTip>:
+    size_hint: None, None
+    size: dp(70), dp(20)
+    MDLabel:
+        id: tip_text
+        text: root.text
+        font_size: 12
+        font_name: 'assets/fonts/Roboto-Bold.ttf'
+        halign: 'center'
+        valign: 'center'
+
+
+<CustomVideoPlayer>:
+    size_hint: 1, None
+    height: root.heightCalculated
+    MDRelativeLayout:
+        id: layout
+        CustomVideo:
+            id: video
+            source: root.source
+            preview: root.preview
+            state: root.state
+            fit_mode: 'contain'
+        MDIcon:
+            id: play_big
+            icon: 'play'
+            font_size: dp(100)
+            size_hint: None, None
+            size: self.texture_size
+            opacity: 1 if root.state != 'play' else 0
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        MDAnchorLayout:
+            id: controls
+            anchor_y: 'bottom'
+            padding: [dp(5), 0, dp(5), dp(5)]
+            MDCard:
+                id: controls_panel
+                size_hint: 1, None
+                md_bg_color: app.theme_cls.bg_light
+                height: dp(30)
+                radius: [8, 8, 8, 8]
+                MDBoxLayout:
+                    id: controls_box
+                    orientation: 'horizontal'
+                    spacing: dp(10)
+                    padding: [dp(10), 0, dp(10), 0]
+                    IconButton:
+                        id: btn_play_pause
+                        icon: 'play' if root.state != 'play' else 'pause'
+                        size_hint: None, None
+                        size: self.texture_size
+                        on_release: root.play_pause()
+                        pos_hint: {'center_y': 0.5}
+                    RoundedProgressBar:
+                        id: progress
+                        orientation: 'horizontal'
+                        value: root.progress
+                        size_hint: 1, None
+                        height: dp(16)
+                        pos_hint: {'center_y': 0.5}
+                        color: [1, 1, 1, 0.05] if root.progress > 0 else [0, 0, 0, 0]
+                        back_color: [1, 1, 1, 0.05]
+                        on_touch_move: root.on_touch_move_progress(*args)
+                        on_touch_down: root.on_touch_down_progress(*args)
+                        on_touch_up: root.on_touch_up_progress(*args)
+                        TimeTip:
+                            id: time_tip
+                            opacity: 0
+                    MDFlatButton:
+                        id: progress_label
+                        text: f'{root.text_progress} / {root.text_duration}'
+                        font_size: 12
+                        font_name: 'assets/fonts/Roboto-Bold.ttf'
+                        valign: 'center'
+                        pos_hint: {'center_y': 0.5}
+                        size_hint_y: None
+                        height: controls_box.height
+                    IconButton:
+                        id: volume
+                        icon: 'volume-mute' if root.muted else 'volume-low' if root._volume < 0.33 else 'volume-medium' if root._volume < 0.66 else 'volume-high'
+                        size_hint: None, None
+                        size: self.texture_size
+                        pos_hint: {'center_y': 0.5}
+                        on_release: root.volume_muter()
+                    IconButton:
+                        id: fullscreen
+                        icon: 'fullscreen' if not root.fullscreen else 'fullscreen-exit'
+                        size_hint: None, None
+                        size: self.texture_size
+                        pos_hint: {'center_y': 0.5}
+                        on_release: root.fullscreen = not root.fullscreen
+
+
 <MDDialogConfirm>
 
     DialogContainer:
@@ -41,9 +137,6 @@
 
 
 <HoverMDCardNoScaleButton@HoverMDCardNoScale+ButtonBehavior>:
-
-
-<AdaptiveMDLabel>:
 
 
 <LoaderLabel>:

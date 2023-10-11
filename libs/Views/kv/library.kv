@@ -8,7 +8,7 @@
     spacing: dp(5)
     size_hint: None, None
     width: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)
-    height: self.width * 1.5 + dp(60)
+    height: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY) * 1.5 + dp(60)
     MDBoxLayout:
         size_hint: None, None
         width: ((Window.size[0] - dp(20) - ((app.COLS_LIBRARY - 1) * dp(10))) / app.COLS_LIBRARY)
@@ -81,13 +81,13 @@
     viewclass: 'LibraryItem'
     pos_hint_x: {"center": .5}
     always_overscroll: False
-    effect_cls: Factory.DampedScrollEffect
-    scroll_wheel_distance: dp(30)
-    smooth_scroll_end: 20
+#    effect_cls: Factory.DampedScrollEffect
+#    scroll_wheel_distance: dp(40)
+#    smooth_scroll_end: 20
     bar_inactive_color: [0, 0, 0, 0]
     MDRecycleGridLayout:
         id: recycle_layout
-        padding: [dp(10), dp(3), 0, dp(50)]
+        padding: [dp(10), dp(3), 0, dp(10)]
         size_hint_y: None
         height: self.minimum_height
         spacing: dp(10)
@@ -98,7 +98,6 @@
     MDRelativeLayout:
         MDBoxLayout:
             id: library_screen_box
-            padding: [0, 0, 0, dp(10)]
         MDFlatButton:
             id: library_empty_indicator
             text: 'Библиотека пуста :('

@@ -2,10 +2,11 @@ import os
 
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, ListProperty, BooleanProperty
+from kivy.uix.video import Video
 from kivymd.uix.recycleview import MDRecycleView
 from kivymd.uix.screen import MDScreen
 from libs.Common.observer import Observer
-from libs.Views.common import HoverMDFlatButton
+from libs.Views.common import HoverMDFlatButton, CustomVideoPlayer
 
 
 class TranslationItem(HoverMDFlatButton):
@@ -47,6 +48,7 @@ class ItemScreen(MDScreen, Observer):
     translationText = StringProperty('')
     quality = StringProperty('')
     translation = StringProperty('')
+    fullpath = StringProperty('')
     isLibrary = BooleanProperty(False)
     isDownloading = BooleanProperty(False)
 
@@ -54,6 +56,10 @@ class ItemScreen(MDScreen, Observer):
         super().__init__(**kw)
         self.model.add_observer(self)
         self.translationsList = RVTranslationsList(self.model, self.controller)
+        self.ids.scroll.effect_y.friction = 0.25
+        self.ids.scroll.scroll_wheel_distance = 60
+        self.ids.scroll.smooth_scroll_end = 20
+        self.videoPlayer = CustomVideoPlayer(self.controller.app)
 
     def model_is_changed(self, what='all'):
         if what == 'itemBaseInformation' or what == 'all':
@@ -72,6 +78,8 @@ class ItemScreen(MDScreen, Observer):
             self.age = self.model.itemBaseInformation['age']
             self.duration = self.model.itemBaseInformation['duration']
             self.description = self.model.itemBaseInformation['description']
+            if "fullpath" in self.model.itemBaseInformation:
+                self.fullpath = self.model.itemBaseInformation['fullpath']
             if "isLibrary" in self.model.itemBaseInformation:
                 self.isLibrary = self.model.itemBaseInformation['isLibrary']
             else:
@@ -101,6 +109,17 @@ class ItemScreen(MDScreen, Observer):
                     self.model.translation = list(self.model.itemBaseInformation['translations'].keys())[0]
             else:
                 self.ids.translations_box.remove_widget(self.translationsList)
+            if self.isLibrary:
+                self.videoPlayer.preview = self.thumbnail
+                self.videoPlayer.source = self.fullpath
+                self.videoPlayer.state = 'play'
+                if self.videoPlayer not in self.ids.video_placeholder.children:
+                    self.ids.video_placeholder.add_widget(self.videoPlayer)
+            else:
+                self.videoPlayer.preview = self.thumbnail
+                self.videoPlayer.state = 'stop'
+                if self.videoPlayer in self.ids.video_placeholder.children:
+                    self.ids.video_placeholder.remove_widget(self.videoPlayer)
         if what == 'translation' or what == 'all':
             self.translation = str(self.model.translation)
             self.translationText = self.translation if self.translation != 'HDrezka Studio ' else 'HDrezka Studio (укр.)'

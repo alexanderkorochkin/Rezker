@@ -7,10 +7,6 @@ from kivy.loader import Loader
 from kivy.metrics import dp
 from kivy.properties import NumericProperty, ObjectProperty
 from kivymd.app import MDApp
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDFlatButton
-from kivymd.uix.label import MDLabel
-from kivymd.uix.snackbar import Snackbar
 
 from libs.Common.database import DataManager
 from libs.Common.utils import open_in_explorer, Spinner, SnackbarMod
@@ -86,6 +82,7 @@ class RezkerApp(MDApp):
 
     def on_start(self):
         Config.set('graphics', 'resizable', True)
+        Config.set('kivy', 'exit_on_escape', '0')
         Config.write()
         self.on_resize(Window, Window.size)
         self.PreCache()

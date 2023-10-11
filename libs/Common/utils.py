@@ -81,6 +81,7 @@ class Spinner:
         self.spinner_anim = None
         self.started = False
         self.muted_screen = None
+        self.d = 0.3
 
         self.spinner_main = MDSpinner(
             size_hint=(None, None),
@@ -98,7 +99,7 @@ class Spinner:
         self.content.add_widget(self.box)
 
     @mainthread
-    def start(self, screen: MDScreen, text: str = 'Загрузка', background_color=None, timeout=60, muted_screen=None):
+    def start(self, screen: MDScreen, text: str = 'Загрузка', background_color=None, timeout=60, muted_screen=None, d=0.3):
         if background_color is None:
             background_color = [0, 0, 0, 0.4]
         if not self.started:
@@ -108,7 +109,8 @@ class Spinner:
             self.screen = screen
             self.content.opacity = 0
             self.screen.add_widget(self.content)
-            self.spinner_anim = Animation(opacity=1, d=0.3)
+            self.d = d
+            self.spinner_anim = Animation(opacity=1, d=self.d)
             self.screen.disabled = True
 
             if muted_screen:
@@ -130,7 +132,7 @@ class Spinner:
         if self.started:
             if self.muted_screen:
                 self.muted_screen.opacity = 1
-            self.spinner_anim = Animation(opacity=0, d=0.3)
+            self.spinner_anim = Animation(opacity=0, d=self.d)
             self.spinner_anim.bind(on_complete=partial(self.removeSpinner, self.screen))
             self.spinner_anim.start(self.content)
 

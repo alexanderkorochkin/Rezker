@@ -4,6 +4,7 @@ import os
 from kivy.animation import Animation
 from kivy.clock import mainthread, Clock
 from kivy.core.window import Window
+from kivy.effects.opacityscroll import OpacityScrollEffect
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, partial, StringProperty, BooleanProperty
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -73,10 +74,14 @@ class SearchScreen(MDScreen, Observer):
         self.app = app
         self.model.add_observer(self)
         self.recycleList = RVSearchItems(self.model, self.controller)
+        self.recycleList.effect_y.friction = 0.25
+        self.recycleList.scroll_wheel_distance = 60
+        self.recycleList.smooth_scroll_end = 20
         self.ids.search_screen_box.add_widget(self.recycleList)
         self.next_results_btn = FloatingButton(text='Загрузить еще', on_release=self.controller.NextResults)
         self.recycleList.fbind('scroll_y', self.checkScroll)
         self.recycleList.fbind('height', self.checkScroll)
+        self.last_scroll_y = None
         Window.bind(on_size=self.checkSize)
 
         self.default_height = 0
@@ -112,6 +117,17 @@ class SearchScreen(MDScreen, Observer):
         vp_height = self.recycleList.children[0].size[1]
         self.recycleList.scroll_y = bottom / (vp_height - sv_height)
 
+    def LazyScrollPrepare(self):
+        self.last_scroll_y = self.recycleList.scroll_y
+        self.recycleList.scroll_y = 0
+        self.recycleList.opacity = 0
+
+    def LazyScrollFix(self):
+        def action(*args):
+            self.recycleList.scroll_y = self.last_scroll_y
+            self.recycleList.opacity = 1
+        Clock.schedule_once(action, 0)
+
     @mainthread
     def model_is_changed(self, new_len):
         self.default_height = self.recycleList.ids.recycle_layout.default_size[1] + 10
@@ -128,12 +144,15 @@ class SearchScreen(MDScreen, Observer):
         sv_height = self.recycleList.height
         bottom = self.recycleList.scroll_y * (vp_height - sv_height)
 
+        self.LazyScrollPrepare()
+
         if new_len != 0:
             self.recycleList.data = []
             self.recycleList.data = self.model.data.copy()
 
+        self.LazyScrollFix()
         if vp_height + self.default_height * delta_rows > sv_height and delta_rows >= 0:
-            Clock.schedule_once(partial(self.adjust_scroll, bottom + self.default_height * delta_rows), -1)
+            Clock.schedule_once(partial(self.adjust_scroll, bottom + self.default_height * delta_rows), 0)
 
 
 Builder.load_file(os.path.join(os.path.dirname(__file__), "kv/search.kv"))

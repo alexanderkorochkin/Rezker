@@ -47,6 +47,7 @@ class ItemModel:
         self._itemBaseInformation['age'] = ''
         self._itemBaseInformation['duration'] = ''
         self._itemBaseInformation['description'] = ''
+        self._itemBaseInformation['fullpath'] = ''
         self._itemBaseInformation['isLibrary'] = False
         self._itemBaseInformation['translations'] = {}
         self._translation = ''
